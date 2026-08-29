@@ -16,6 +16,7 @@ SmartRiverWaterLevel/
 │   ├── main/
 │   │   └── Main.java
 │   ├── model/
+│   │   └── WaterLevelRecord.java
 │   ├── service/
 │   ├── imageprocessing/
 │   ├── exception/
@@ -29,18 +30,26 @@ SmartRiverWaterLevel/
 
 ---
 
-## 🚀 Day 1 - Getting Started
-### Features Implemented:
-- Basic console application scaffold
-- Interactive menu system using `Scanner`
-- Switch-case navigation with clean output formatting
-- Placeholder options for upcoming image processing & data collection modules
+## 🚀 Daily Development Progress
 
-### How to Compile and Run:
+### Day 1: Project Initialization & Console Scaffold
+- Created initial directory structure and `.gitignore`
+- Built interactive console menu loop with `Scanner` and `switch-case`
+- Added system status and placeholder module routing
+
+### Day 2: Domain Model & OOP Encapsulation
+- Created `WaterLevelRecord.java` model class with private fields
+- Implemented default and parameterized constructors
+- Added getters/setters, threshold evaluation logic (`NORMAL`, `WARNING`, `CRITICAL`), and record formatting
+- Integrated model instantiation and testing inside `Main.java`
+
+---
+
+## 💻 How to Compile and Run:
 ```bash
-# Compile
-javac -d bin src/main/Main.java
+# Compile all source files into bin/
+javac -d bin src/model/WaterLevelRecord.java src/main/Main.java
 
-# Run
+# Run the application
 java -cp bin main.Main
 ```
