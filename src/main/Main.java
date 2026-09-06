@@ -1,5 +1,8 @@
 package main;
 
+import exception.DuplicateStationException;
+import exception.InvalidWaterLevelException;
+import exception.StationNotFoundException;
 import java.util.List;
 import java.util.Scanner;
 import model.RiverStation;
@@ -8,8 +11,8 @@ import service.RiverMonitoringService;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 4: Service Layer, Collections Framework (List, ArrayList), Multi-Station Management & Analytics
- * Syllabus Unit: UNIT III - Java Collections Framework, Modular Architecture, Layered Services
+ * Day 5: Custom Exception Handling, Robust Input Validation, and Structured Error Recovery
+ * Syllabus Unit: UNIT IV - Exception Handling, try-catch-finally, throws, custom exceptions
  */
 public class Main {
 
@@ -17,7 +20,6 @@ public class Main {
     private static RiverStation activeStation;
 
     public static void main(String[] args) {
-        // Set initial active station from service
         List<RiverStation> initialStations = monitoringService.getAllStations();
         if (!initialStations.isEmpty()) {
             activeStation = initialStations.get(0);
@@ -30,7 +32,7 @@ public class Main {
 
         while (running) {
             displayMenu();
-            System.out.print("Enter your choice (1-7): ");
+            System.out.print("Enter your choice (1-8): ");
 
             if (scanner.hasNextInt()) {
                 int choice = scanner.nextInt();
@@ -48,23 +50,26 @@ public class Main {
                         recordStationMeasurement(scanner);
                         break;
                     case 4:
-                        displayReadingHistoryAndAnalytics();
+                        registerNewStation(scanner);
                         break;
                     case 5:
-                        displayCriticalFloodAlerts();
+                        displayReadingHistoryAndAnalytics();
                         break;
                     case 6:
-                        displaySystemStatus();
+                        displayCriticalFloodAlerts();
                         break;
                     case 7:
+                        displaySystemStatus();
+                        break;
+                    case 8:
                         System.out.println("Exiting system. Thank you for using Smart River Water Level Monitoring!");
                         running = false;
                         break;
                     default:
-                        System.out.println("Invalid option! Please enter a number between 1 and 7.");
+                        System.out.println("Invalid option! Please enter a number between 1 and 8.");
                 }
             } else {
-                System.out.println("\nInvalid input! Please enter a valid numerical option.");
+                System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical menu option.");
                 scanner.nextLine(); // clear invalid token
             }
 
@@ -81,18 +86,19 @@ public class Main {
         System.out.println("   SMART RIVER WATER LEVEL MONITORING & DATA COLLECTION     ");
         System.out.println("               (Using Image Processing)                     ");
         System.out.println("============================================================");
-        System.out.println("Academic Prototype - Core Java Console Edition (Day 4: Service Layer)\n");
+        System.out.println("Academic Prototype - Core Java Console Edition (Day 5: Exception Handling)\n");
     }
 
     private static void displayMenu() {
         System.out.println("MAIN MENU:");
-        System.out.println("1. View All River Monitoring Stations (Collections: List)");
+        System.out.println("1. View All River Monitoring Stations");
         System.out.println("2. Select / Switch Active Monitoring Station");
         System.out.println("3. Record Water Level for Active Station [" + (activeStation != null ? activeStation.getStationId() : "None") + "]");
-        System.out.println("4. View All Reading History & Basin Analytics");
-        System.out.println("5. View Critical Flood Alert Records");
-        System.out.println("6. System Architecture & Status");
-        System.out.println("7. Exit");
+        System.out.println("4. Register New River Monitoring Station (Custom Station)");
+        System.out.println("5. View All Reading History & Basin Analytics");
+        System.out.println("6. View Critical Flood Alert Records");
+        System.out.println("7. System Architecture & Status");
+        System.out.println("8. Exit");
     }
 
     private static void displayAllStations() {
@@ -117,15 +123,17 @@ public class Main {
 
     private static void switchActiveStation(Scanner scanner) {
         System.out.println("=== SWITCH ACTIVE MONITORING STATION ===");
-        System.out.print("Enter Station ID (e.g., STN-HAR-01, STN-RSH-02, STN-KNP-03, STN-VRN-04): ");
+        System.out.print("Enter Station ID to activate (e.g., STN-HAR-01, STN-RSH-02): ");
         String stationId = scanner.nextLine().trim();
 
-        RiverStation found = monitoringService.getStationById(stationId);
-        if (found != null) {
+        // UNIT IV: Structured Exception Handling with try-catch
+        try {
+            RiverStation found = monitoringService.getStationByIdOrThrow(stationId);
             activeStation = found;
             System.out.println("\n[SUCCESS] Active station switched to: " + found.getStationName() + " (" + found.getStationId() + ")");
-        } else {
-            System.out.println("\n[ERROR] Station ID '" + stationId + "' not found in registered registry!");
+        } catch (StationNotFoundException e) {
+            System.out.println("\n[ERROR: StationNotFoundException] " + e.getMessage());
+            System.out.println("Tip: Use Menu Option 1 to check the list of valid station IDs.");
         }
     }
 
@@ -136,7 +144,11 @@ public class Main {
         }
 
         System.out.println("=== RECORD WATER LEVEL FOR STATION: " + activeStation.getStationName() + " ===");
-        System.out.printf("Thresholds -> Normal: %.2fm | Danger: %.2fm\n", activeStation.getNormalLevelMeters(), activeStation.getDangerLevelMeters());
+        System.out.printf("Permissible Range: %.1fm to %.1fm | Danger Threshold: %.2fm\n",
+            RiverMonitoringService.MIN_PERMISSIBLE_LEVEL,
+            RiverMonitoringService.MAX_PERMISSIBLE_LEVEL,
+            activeStation.getDangerLevelMeters()
+        );
         System.out.print("Enter measured water level in meters (e.g. 15.4): ");
 
         if (scanner.hasNextDouble()) {
@@ -144,10 +156,11 @@ public class Main {
             scanner.nextLine(); // consume newline
 
             String timestamp = "2026-09-06 (Live Reading)";
-            WaterLevelRecord record = monitoringService.recordMeasurement(activeStation.getStationId(), level, timestamp);
 
-            if (record != null) {
-                System.out.println("\n[SUCCESS] Water level measurement captured and appended to history audit log:");
+            // UNIT IV: Catching domain-specific checked exceptions
+            try {
+                WaterLevelRecord record = monitoringService.recordMeasurement(activeStation.getStationId(), level, timestamp);
+                System.out.println("\n[SUCCESS] Water level measurement verified & saved:");
                 record.printRecordDetails();
 
                 if (activeStation.isFloodRisk(level)) {
@@ -155,10 +168,61 @@ public class Main {
                 } else {
                     System.out.println(">>> ✅ STATUS: Water level is within safe operational limits.");
                 }
+            } catch (InvalidWaterLevelException e) {
+                System.out.println("\n[VALIDATION FAILED: InvalidWaterLevelException]");
+                System.out.println("Error Detail: " + e.getMessage());
+                System.out.println("Cause: Readings below 0.0m or exceeding 50.0m are rejected as physically invalid.");
+            } catch (StationNotFoundException e) {
+                System.out.println("\n[ERROR: StationNotFoundException] " + e.getMessage());
             }
         } else {
-            System.out.println("[ERROR] Invalid water level value! Please enter a numerical decimal value.");
+            System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical decimal value (e.g. 12.5).");
             scanner.nextLine(); // clear invalid token
+        }
+    }
+
+    private static void registerNewStation(Scanner scanner) {
+        System.out.println("=== REGISTER NEW RIVER MONITORING STATION ===");
+        
+        System.out.print("Enter Unique Station ID (e.g., STN-DEL-05): ");
+        String stationId = scanner.nextLine().trim();
+
+        System.out.print("Enter Station Name (e.g., Delhi Wazirabad Station): ");
+        String stationName = scanner.nextLine().trim();
+
+        System.out.print("Enter River Name (e.g., Yamuna River): ");
+        String riverName = scanner.nextLine().trim();
+
+        System.out.print("Enter Normal Baseline Level in meters (e.g., 8.5): ");
+        if (!scanner.hasNextDouble()) {
+            System.out.println("[INPUT ERROR] Invalid normal level! Registration aborted.");
+            scanner.nextLine();
+            return;
+        }
+        double normalLevel = scanner.nextDouble();
+
+        System.out.print("Enter Danger Threshold in meters (e.g., 18.0): ");
+        if (!scanner.hasNextDouble()) {
+            System.out.println("[INPUT ERROR] Invalid danger level! Registration aborted.");
+            scanner.nextLine();
+            return;
+        }
+        double dangerLevel = scanner.nextDouble();
+        scanner.nextLine(); // consume newline
+
+        RiverStation newStation = new RiverStation(stationId, stationName, riverName, normalLevel, dangerLevel);
+
+        // UNIT IV: Catching custom DuplicateStationException
+        try {
+            monitoringService.registerStation(newStation);
+            System.out.println("\n[SUCCESS] New monitoring station registered successfully!");
+            System.out.println("  " + newStation.toString());
+        } catch (DuplicateStationException e) {
+            System.out.println("\n[REGISTRATION FAILED: DuplicateStationException]");
+            System.out.println("Error Detail: " + e.getMessage());
+            System.out.println("Action: Please use a distinct station identifier.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("\n[VALIDATION FAILED] " + e.getMessage());
         }
     }
 
@@ -207,9 +271,9 @@ public class Main {
 
     private static void displaySystemStatus() {
         System.out.println("================ SYSTEM ARCHITECTURE & STATUS ================");
-        System.out.println("System Version : v0.4 (Day 4: Service Layer & Collections)");
+        System.out.println("System Version : v0.5 (Day 5: Custom Exception Handling)");
         System.out.println("Architecture   : Layered (Model -> Service -> Main Presentation)");
-        System.out.println("Collections    : ArrayList (Dynamic Station & Record Management)");
+        System.out.println("Exceptions     : Checked Domain Exceptions (InvalidWaterLevel, StationNotFound, DuplicateStation)");
         System.out.println("Active Station : " + (activeStation != null ? activeStation.getStationName() : "None"));
         System.out.println("Total Stations : " + monitoringService.getTotalStationsCount());
         System.out.println("Total Records  : " + monitoringService.getTotalReadingsCount());

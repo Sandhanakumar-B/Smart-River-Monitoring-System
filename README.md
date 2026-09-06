@@ -20,8 +20,11 @@ SmartRiverWaterLevel/
 │   │   └── WaterLevelRecord.java
 │   ├── service/
 │   │   └── RiverMonitoringService.java
-│   ├── imageprocessing/
 │   ├── exception/
+│   │   ├── DuplicateStationException.java
+│   │   ├── InvalidWaterLevelException.java
+│   │   └── StationNotFoundException.java
+│   ├── imageprocessing/
 │   └── dao/
 ├── images/
 ├── screenshots/
@@ -57,12 +60,21 @@ SmartRiverWaterLevel/
 - Added basin-wide analytics: average water level, peak recorded level, and critical flood warning filtration
 - Enhanced `Main.java` with multi-station switching, interactive reading entry, and real-time alert dispatch
 
+### Day 5: Custom Exception Handling & Robust Input Validation
+- Created custom domain checked exceptions extending `java.lang.Exception`:
+  - `InvalidWaterLevelException.java`: Rejects out-of-bounds readings (`< 0.0m` or `> 50.0m`)
+  - `StationNotFoundException.java`: Catches lookups for unregistered station IDs
+  - `DuplicateStationException.java`: Prevents registration collisions for duplicate station IDs
+- Integrated `throw` and `throws` declarations across the service layer
+- Implemented structured `try-catch-finally` blocks in `Main.java` ensuring graceful error recovery without console crashes
+- Added interactive registration feature for custom river stations
+
 ---
 
 ## 💻 How to Compile and Run:
 ```bash
 # Compile all source files into bin/
-javac -d bin src/model/*.java src/service/*.java src/main/Main.java
+javac -d bin src/model/*.java src/exception/*.java src/service/*.java src/main/Main.java
 
 # Run the application
 java -cp bin main.Main
