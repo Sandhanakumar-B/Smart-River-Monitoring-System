@@ -16,6 +16,7 @@ SmartRiverWaterLevel/
 │   ├── main/
 │   │   └── Main.java
 │   ├── model/
+│   │   ├── RiverStation.java
 │   │   └── WaterLevelRecord.java
 │   ├── service/
 │   ├── imageprocessing/
@@ -40,15 +41,21 @@ SmartRiverWaterLevel/
 ### Day 2: Domain Model & OOP Encapsulation
 - Created `WaterLevelRecord.java` model class with private fields
 - Implemented default and parameterized constructors
-- Added getters/setters, threshold evaluation logic (`NORMAL`, `WARNING`, `CRITICAL`), and record formatting
+- Added getters/setters, threshold evaluation logic, and record formatting
 - Integrated model instantiation and testing inside `Main.java`
+
+### Day 3: River Station Entity & Object Relationships
+- Created `RiverStation.java` model class representing monitoring stations
+- Implemented object relationship (Association: Station generates `WaterLevelRecord`)
+- Demonstrated **Method Overriding** with `toString()`
+- Added interactive station details and reading generation in `Main.java`
 
 ---
 
 ## 💻 How to Compile and Run:
 ```bash
 # Compile all source files into bin/
-javac -d bin src/model/WaterLevelRecord.java src/main/Main.java
+javac -d bin src/model/*.java src/main/Main.java
 
 # Run the application
 java -cp bin main.Main
