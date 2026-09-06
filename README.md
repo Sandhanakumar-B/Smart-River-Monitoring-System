@@ -5,7 +5,7 @@ An academic console-based Java application designed to estimate river water leve
 ---
 
 ## 📌 Project Overview
-This project monitors river water levels by processing river gauge/surface images, validating measurements against alert thresholds, and recording monitoring history.
+This project monitors river water levels by processing river gauge/surface images, validating measurements against alert thresholds, and recording monitoring history across multiple river stations.
 
 ---
 
@@ -19,6 +19,7 @@ SmartRiverWaterLevel/
 │   │   ├── RiverStation.java
 │   │   └── WaterLevelRecord.java
 │   ├── service/
+│   │   └── RiverMonitoringService.java
 │   ├── imageprocessing/
 │   ├── exception/
 │   └── dao/
@@ -50,12 +51,18 @@ SmartRiverWaterLevel/
 - Demonstrated **Method Overriding** with `toString()`
 - Added interactive station details and reading generation in `Main.java`
 
+### Day 4: Service Layer & Collections Framework
+- Created `RiverMonitoringService.java` in the `service` package to decouple business logic
+- Utilized Java Collections Framework (`List`, `ArrayList`) for dynamic station registry and historical reading audit logs
+- Added basin-wide analytics: average water level, peak recorded level, and critical flood warning filtration
+- Enhanced `Main.java` with multi-station switching, interactive reading entry, and real-time alert dispatch
+
 ---
 
 ## 💻 How to Compile and Run:
 ```bash
 # Compile all source files into bin/
-javac -d bin src/model/*.java src/main/Main.java
+javac -d bin src/model/*.java src/service/*.java src/main/Main.java
 
 # Run the application
 java -cp bin main.Main
