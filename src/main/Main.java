@@ -3,6 +3,8 @@ package main;
 import exception.DuplicateStationException;
 import exception.InvalidWaterLevelException;
 import exception.StationNotFoundException;
+import imageprocessing.GaugeProcessingResult;
+import java.io.File;
 import java.util.List;
 import java.util.Scanner;
 import model.RiverStation;
@@ -11,8 +13,8 @@ import service.RiverMonitoringService;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 5: Custom Exception Handling, Robust Input Validation, and Structured Error Recovery
- * Syllabus Unit: UNIT IV - Exception Handling, try-catch-finally, throws, custom exceptions
+ * Day 6: Computer Vision Integration, Gauge Waterline Detection & Automated Monitoring
+ * Syllabus Unit: UNIT V - Java Advanced Imaging, Algorithmic Analysis & Modular Integration
  */
 public class Main {
 
@@ -32,7 +34,7 @@ public class Main {
 
         while (running) {
             displayMenu();
-            System.out.print("Enter your choice (1-8): ");
+            System.out.print("Enter your choice (1-9): ");
 
             if (scanner.hasNextInt()) {
                 int choice = scanner.nextInt();
@@ -50,23 +52,26 @@ public class Main {
                         recordStationMeasurement(scanner);
                         break;
                     case 4:
-                        registerNewStation(scanner);
+                        estimateWaterLevelFromImage(scanner);
                         break;
                     case 5:
-                        displayReadingHistoryAndAnalytics();
+                        registerNewStation(scanner);
                         break;
                     case 6:
-                        displayCriticalFloodAlerts();
+                        displayReadingHistoryAndAnalytics();
                         break;
                     case 7:
-                        displaySystemStatus();
+                        displayCriticalFloodAlerts();
                         break;
                     case 8:
+                        displaySystemStatus();
+                        break;
+                    case 9:
                         System.out.println("Exiting system. Thank you for using Smart River Water Level Monitoring!");
                         running = false;
                         break;
                     default:
-                        System.out.println("Invalid option! Please enter a number between 1 and 8.");
+                        System.out.println("Invalid option! Please enter a number between 1 and 9.");
                 }
             } else {
                 System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical menu option.");
@@ -86,19 +91,20 @@ public class Main {
         System.out.println("   SMART RIVER WATER LEVEL MONITORING & DATA COLLECTION     ");
         System.out.println("               (Using Image Processing)                     ");
         System.out.println("============================================================");
-        System.out.println("Academic Prototype - Core Java Console Edition (Day 5: Exception Handling)\n");
+        System.out.println("Academic Prototype - Core Java Console Edition (Day 6: Image Processing Active)\n");
     }
 
     private static void displayMenu() {
         System.out.println("MAIN MENU:");
         System.out.println("1. View All River Monitoring Stations");
         System.out.println("2. Select / Switch Active Monitoring Station");
-        System.out.println("3. Record Water Level for Active Station [" + (activeStation != null ? activeStation.getStationId() : "None") + "]");
-        System.out.println("4. Register New River Monitoring Station (Custom Station)");
-        System.out.println("5. View All Reading History & Basin Analytics");
-        System.out.println("6. View Critical Flood Alert Records");
-        System.out.println("7. System Architecture & Status");
-        System.out.println("8. Exit");
+        System.out.println("3. Record Water Level Manually for Active Station [" + (activeStation != null ? activeStation.getStationId() : "None") + "]");
+        System.out.println("4. 📷 Estimate Water Level via Gauge Image Processing (Computer Vision)");
+        System.out.println("5. Register New River Monitoring Station (Custom Station)");
+        System.out.println("6. View All Reading History & Basin Analytics");
+        System.out.println("7. View Critical Flood Alert Records");
+        System.out.println("8. System Architecture & Status");
+        System.out.println("9. Exit");
     }
 
     private static void displayAllStations() {
@@ -178,6 +184,87 @@ public class Main {
         } else {
             System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical decimal value (e.g. 12.5).");
             scanner.nextLine(); // clear invalid token
+        }
+    }
+
+    private static void estimateWaterLevelFromImage(Scanner scanner) {
+        if (activeStation == null) {
+            System.out.println("[ERROR] No active station selected! Please select a station first.");
+            return;
+        }
+
+        System.out.println("=== 📷 ESTIMATE WATER LEVEL FROM RIVER GAUGE IMAGE (IMAGE PROCESSING) ===");
+        System.out.println("Active Station      : " + activeStation.getStationName() + " (" + activeStation.getStationId() + ")");
+        System.out.println("Danger Threshold    : " + activeStation.getDangerLevelMeters() + " meters");
+        System.out.println("\nSelect Image Source for Computer Vision Analysis:");
+        System.out.println("1. Benchmark Sample: Normal Water Level (images/gauge_normal.png)");
+        System.out.println("2. Benchmark Sample: Warning Level (images/gauge_warning.png)");
+        System.out.println("3. Benchmark Sample: Critical Flood Level (images/gauge_flood.png)");
+        System.out.println("4. Custom File Path (Provide custom PNG/JPG gauge image)");
+        System.out.print("Enter option (1-4): ");
+
+        String imagePath = null;
+        if (scanner.hasNextInt()) {
+            int imgChoice = scanner.nextInt();
+            scanner.nextLine(); // consume newline
+
+            switch (imgChoice) {
+                case 1:
+                    imagePath = "images/gauge_normal.png";
+                    break;
+                case 2:
+                    imagePath = "images/gauge_warning.png";
+                    break;
+                case 3:
+                    imagePath = "images/gauge_flood.png";
+                    break;
+                case 4:
+                    System.out.print("Enter path to gauge image file: ");
+                    imagePath = scanner.nextLine().trim();
+                    break;
+                default:
+                    System.out.println("[ERROR] Invalid image selection choice.");
+                    return;
+            }
+        } else {
+            System.out.println("[INPUT ERROR] Numerical choice expected.");
+            scanner.nextLine();
+            return;
+        }
+
+        System.out.println("\n[IMAGE PROCESSING] Running computer vision pipeline on: " + imagePath);
+        System.out.println("  1. Loading raster pixel matrix...");
+        System.out.println("  2. Calculating grayscale luminance profile...");
+        System.out.println("  3. Running vertical gradient edge convolution across ROI...");
+        System.out.println("  4. Performing physical pixel-to-meter calibration...");
+
+        String timestamp = "2026-09-07 Live Feed";
+
+        try {
+            GaugeProcessingResult result = monitoringService.processAndRecordGaugeImage(
+                activeStation.getStationId(),
+                imagePath,
+                timestamp
+            );
+
+            System.out.println();
+            result.printSummary();
+
+            if (result.isSuccess()) {
+                double level = result.getEstimatedWaterLevelMeters();
+                if (activeStation.isFloodRisk(level)) {
+                    System.out.println(">>> 🚨 CRITICAL ALERT: Computer vision detected flood risk exceeding " 
+                        + activeStation.getDangerLevelMeters() + "m!");
+                } else {
+                    System.out.println(">>> ✅ STATUS: Water level is within normal range.");
+                }
+                System.out.println(">>> 💾 Measurement automatically recorded in Basin Collections & Audit Log.");
+            }
+        } catch (InvalidWaterLevelException e) {
+            System.out.println("\n[VALIDATION FAILED: InvalidWaterLevelException]");
+            System.out.println("Error Detail: " + e.getMessage());
+        } catch (StationNotFoundException e) {
+            System.out.println("\n[ERROR: StationNotFoundException] " + e.getMessage());
         }
     }
 
@@ -271,8 +358,9 @@ public class Main {
 
     private static void displaySystemStatus() {
         System.out.println("================ SYSTEM ARCHITECTURE & STATUS ================");
-        System.out.println("System Version : v0.5 (Day 5: Custom Exception Handling)");
-        System.out.println("Architecture   : Layered (Model -> Service -> Main Presentation)");
+        System.out.println("System Version : v0.6 (Day 6: Computer Vision & Image Processing)");
+        System.out.println("Architecture   : Layered (Model -> Service -> ImageProcessing -> Presentation)");
+        System.out.println("Image Engine   : Region of Interest (ROI) Edge Detection & Pixel Calibration");
         System.out.println("Exceptions     : Checked Domain Exceptions (InvalidWaterLevel, StationNotFound, DuplicateStation)");
         System.out.println("Active Station : " + (activeStation != null ? activeStation.getStationName() : "None"));
         System.out.println("Total Stations : " + monitoringService.getTotalStationsCount());

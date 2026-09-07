@@ -25,8 +25,14 @@ SmartRiverWaterLevel/
 │   │   ├── InvalidWaterLevelException.java
 │   │   └── StationNotFoundException.java
 │   ├── imageprocessing/
+│   │   ├── GaugeProcessingResult.java
+│   │   ├── GenerateBenchmarkImages.java
+│   │   └── WaterLevelImageProcessor.java
 │   └── dao/
 ├── images/
+│   ├── gauge_flood.png
+│   ├── gauge_normal.png
+│   └── gauge_warning.png
 ├── screenshots/
 ├── docs/
 ├── README.md
@@ -69,12 +75,22 @@ SmartRiverWaterLevel/
 - Implemented structured `try-catch-finally` blocks in `Main.java` ensuring graceful error recovery without console crashes
 - Added interactive registration feature for custom river stations
 
+### Day 6: Computer Vision & Water Level Estimation from Gauge Images
+- Created `WaterLevelImageProcessor.java` utilizing standard Java 2D Image I/O (`BufferedImage`, `Raster`):
+  - Multi-column surface boundary scan across river flanks and gauge staff to filter tick-mark artifacts
+  - Grayscale luminance profiling and vertical edge convolution kernel `[-1, 0, 1]`
+  - Otsu threshold fallback segmentation for subtle gradients
+  - Pixel-to-meter physical calibration mapping detected pixel waterline to physical river water level
+- Created `GaugeProcessingResult.java` value object storing detection metrics, confidence scores, pixel coordinates, and diagnostic notes
+- Created `GenerateBenchmarkImages.java` producing calibrated test gauge images (`gauge_normal.png`, `gauge_warning.png`, `gauge_flood.png`)
+- Integrated image processing pipeline into `RiverMonitoringService` and interactive Menu Option 4 in `Main.java`
+
 ---
 
 ## 💻 How to Compile and Run:
 ```bash
 # Compile all source files into bin/
-javac -d bin src/model/*.java src/exception/*.java src/service/*.java src/main/Main.java
+javac -d bin src/model/*.java src/exception/*.java src/imageprocessing/*.java src/service/*.java src/main/Main.java
 
 # Run the application
 java -cp bin main.Main

@@ -3,6 +3,8 @@ package service;
 import exception.DuplicateStationException;
 import exception.InvalidWaterLevelException;
 import exception.StationNotFoundException;
+import imageprocessing.GaugeProcessingResult;
+import imageprocessing.WaterLevelImageProcessor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,8 +13,8 @@ import model.WaterLevelRecord;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 5: Service Layer with Custom Exceptions & Robust Validation
- * Syllabus Unit: UNIT IV - Exception Handling (Checked Exceptions, throws, throw, Validation)
+ * Day 6: Service Layer with Integrated Computer Vision & Image Processing
+ * Syllabus Unit: UNIT V - Java Advanced Imaging, Data Processing & Algorithmic Integration
  */
 public class RiverMonitoringService {
 
@@ -21,10 +23,12 @@ public class RiverMonitoringService {
 
     private final List<RiverStation> stations;
     private final List<WaterLevelRecord> records;
+    private final WaterLevelImageProcessor imageProcessor;
 
     public RiverMonitoringService() {
         this.stations = new ArrayList<>();
         this.records = new ArrayList<>();
+        this.imageProcessor = new WaterLevelImageProcessor();
         initializeDefaultStations();
     }
 
@@ -200,5 +204,37 @@ public class RiverMonitoringService {
 
     public int getTotalReadingsCount() {
         return this.records.size();
+    }
+
+    /**
+     * Estimates water level from a staff gauge image and logs the record.
+     * Integrates image analysis (Unit V) with domain validation and exception handling (Unit IV).
+     */
+    public GaugeProcessingResult processAndRecordGaugeImage(String stationId, String imagePath, String timestamp)
+            throws StationNotFoundException, InvalidWaterLevelException {
+        RiverStation station = getStationByIdOrThrow(stationId);
+
+        // Calibrate based on maximum gauge scale (default 20.0m or 1.25x danger level)
+        double maxGaugeScale = Math.max(20.0, station.getDangerLevelMeters() * 1.25);
+        GaugeProcessingResult result = this.imageProcessor.processGaugeImage(imagePath, maxGaugeScale);
+
+        if (!result.isSuccess()) {
+            return result;
+        }
+
+        double estimatedLevel = result.getEstimatedWaterLevelMeters();
+        if (estimatedLevel < MIN_PERMISSIBLE_LEVEL || estimatedLevel > MAX_PERMISSIBLE_LEVEL) {
+            throw new InvalidWaterLevelException(estimatedLevel);
+        }
+
+        String recordId = "REC-IMG-" + (1000 + this.records.size() + 1);
+        WaterLevelRecord record = station.generateReading(recordId, estimatedLevel, timestamp + " [Image Analysis]");
+        this.records.add(record);
+
+        return result;
+    }
+
+    public WaterLevelImageProcessor getImageProcessor() {
+        return imageProcessor;
     }
 }
