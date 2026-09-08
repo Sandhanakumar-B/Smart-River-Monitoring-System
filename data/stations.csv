@@ -1,0 +1,5 @@
+stationId,stationName,riverName,normalLevelMeters,dangerLevelMeters
+STN-HAR-01,Haridwar Central Gauge Station,Ganga River,7.50,16.50
+STN-RSH-02,Rishikesh Barrage Station,Ganga River,6.20,14.00
+STN-KNP-03,Kanpur Ghat Station,Ganga River,8.00,17.50
+STN-VRN-04,Varanasi Assi Ghat Station,Ganga River,9.10,18.20

@@ -1,0 +1,4 @@
+recordId,riverName,stationLocation,waterLevelMeters,alertStatus,timestamp
+REC-1001,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),8.20,NORMAL (Safe Level),2026-09-01 08:00 AM
+REC-1002,Ganga River,Rishikesh Barrage Station (STN-RSH-02),7.00,NORMAL (Safe Level),2026-09-01 09:30 AM
+REC-1003,Ganga River,Kanpur Ghat Station (STN-KNP-03),17.80,WARNING (High Flow),2026-09-01 11:15 AM

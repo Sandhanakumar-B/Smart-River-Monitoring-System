@@ -1,10 +1,15 @@
 package service;
 
+import dao.StationDAO;
+import dao.StationFileDAO;
+import dao.WaterLevelRecordDAO;
+import dao.WaterLevelRecordFileDAO;
 import exception.DuplicateStationException;
 import exception.InvalidWaterLevelException;
 import exception.StationNotFoundException;
 import imageprocessing.GaugeProcessingResult;
 import imageprocessing.WaterLevelImageProcessor;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,63 +18,72 @@ import model.WaterLevelRecord;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 6: Service Layer with Integrated Computer Vision & Image Processing
- * Syllabus Unit: UNIT V - Java Advanced Imaging, Data Processing & Algorithmic Integration
+ * Day 7: Service Layer with Data Access Object (DAO) Integration & Permanent File Persistence
+ * Syllabus Unit: UNIT III, IV & V - DAO Pattern, File I/O, Advanced Imaging, Modular Decoupling
  */
 public class RiverMonitoringService {
 
     public static final double MIN_PERMISSIBLE_LEVEL = 0.0;
     public static final double MAX_PERMISSIBLE_LEVEL = 50.0;
 
+    private final StationDAO stationDAO;
+    private final WaterLevelRecordDAO recordDAO;
     private final List<RiverStation> stations;
     private final List<WaterLevelRecord> records;
     private final WaterLevelImageProcessor imageProcessor;
 
+    /**
+     * Default constructor initializing standard File DAOs (data/stations.csv & data/readings.csv)
+     */
     public RiverMonitoringService() {
-        this.stations = new ArrayList<>();
-        this.records = new ArrayList<>();
-        this.imageProcessor = new WaterLevelImageProcessor();
-        initializeDefaultStations();
+        this(new StationFileDAO(), new WaterLevelRecordFileDAO());
     }
 
     /**
-     * Seeds initial river monitoring stations across key basin locations
+     * Dependency injection constructor allowing custom or mock DAOs
      */
-    private void initializeDefaultStations() {
+    public RiverMonitoringService(StationDAO stationDAO, WaterLevelRecordDAO recordDAO) {
+        this.stationDAO = stationDAO;
+        this.recordDAO = recordDAO;
+        this.stations = new ArrayList<>();
+        this.records = new ArrayList<>();
+        this.imageProcessor = new WaterLevelImageProcessor();
+        loadDataFromStorage();
+    }
+
+    /**
+     * Synchronizes in-memory collections with permanent DAO storage
+     */
+    public synchronized void loadDataFromStorage() {
+        this.stations.clear();
+        this.records.clear();
+
         try {
-            registerStation(new RiverStation(
-                "STN-HAR-01",
-                "Haridwar Central Gauge Station",
-                "Ganga River",
-                7.5,
-                16.5
-            ));
+            List<RiverStation> storedStations = this.stationDAO.getAllStations();
+            this.stations.addAll(storedStations);
 
-            registerStation(new RiverStation(
-                "STN-RSH-02",
-                "Rishikesh Barrage Station",
-                "Ganga River",
-                6.2,
-                14.0
-            ));
+            List<WaterLevelRecord> storedRecords = this.recordDAO.getAllRecords();
+            this.records.addAll(storedRecords);
+        } catch (IOException e) {
+            System.err.println("[RiverMonitoringService Error] Failed to load data from storage: " + e.getMessage());
+            bootstrapDefaultsIfEmpty();
+        }
 
-            registerStation(new RiverStation(
-                "STN-KNP-03",
-                "Kanpur Ghat Station",
-                "Ganga River",
-                8.0,
-                17.5
-            ));
+        if (this.stations.isEmpty()) {
+            bootstrapDefaultsIfEmpty();
+        }
+    }
 
-            registerStation(new RiverStation(
-                "STN-VRN-04",
-                "Varanasi Assi Ghat Station",
-                "Ganga River",
-                9.1,
-                18.2
-            ));
+    /**
+     * Fallback bootstrap if storage was empty
+     */
+    private void bootstrapDefaultsIfEmpty() {
+        try {
+            registerStation(new RiverStation("STN-HAR-01", "Haridwar Central Gauge Station", "Ganga River", 7.5, 16.5));
+            registerStation(new RiverStation("STN-RSH-02", "Rishikesh Barrage Station", "Ganga River", 6.2, 14.0));
+            registerStation(new RiverStation("STN-KNP-03", "Kanpur Ghat Station", "Ganga River", 8.0, 17.5));
+            registerStation(new RiverStation("STN-VRN-04", "Varanasi Assi Ghat Station", "Ganga River", 9.1, 18.2));
 
-            // Initial baseline readings
             recordMeasurement("STN-HAR-01", 8.2, "2026-09-01 08:00 AM");
             recordMeasurement("STN-RSH-02", 7.0, "2026-09-01 09:30 AM");
             recordMeasurement("STN-KNP-03", 17.8, "2026-09-01 11:15 AM");
@@ -79,10 +93,10 @@ public class RiverMonitoringService {
     }
 
     /**
-     * Registers a new monitoring station into the system.
+     * Registers a new monitoring station into the system and commits to storage via DAO.
      * Throws DuplicateStationException if station ID is already in use.
      */
-    public void registerStation(RiverStation station) throws DuplicateStationException {
+    public synchronized void registerStation(RiverStation station) throws DuplicateStationException {
         if (station == null || station.getStationId() == null || station.getStationId().trim().isEmpty()) {
             throw new IllegalArgumentException("Station and Station ID cannot be null or empty.");
         }
@@ -92,6 +106,13 @@ public class RiverMonitoringService {
         }
 
         this.stations.add(station);
+
+        // Persist via DAO
+        try {
+            this.stationDAO.saveStation(station);
+        } catch (IOException e) {
+            System.err.println("[Persistence Warning] Failed to save station to permanent storage: " + e.getMessage());
+        }
     }
 
     /**
@@ -128,11 +149,9 @@ public class RiverMonitoringService {
     }
 
     /**
-     * Validates and records a new water level measurement.
-     * Throws StationNotFoundException if station does not exist.
-     * Throws InvalidWaterLevelException if water level is below 0m or exceeds 50m.
+     * Validates, creates, records, and permanently persists a new water level measurement.
      */
-    public WaterLevelRecord recordMeasurement(String stationId, double levelMeters, String timestamp)
+    public synchronized WaterLevelRecord recordMeasurement(String stationId, double levelMeters, String timestamp)
             throws StationNotFoundException, InvalidWaterLevelException {
         
         // Validate level constraints (UNIT IV - Throwing Custom Exception)
@@ -145,6 +164,14 @@ public class RiverMonitoringService {
         String recordId = "REC-" + (1000 + this.records.size() + 1);
         WaterLevelRecord record = station.generateReading(recordId, levelMeters, timestamp);
         this.records.add(record);
+
+        // Persist via DAO
+        try {
+            this.recordDAO.saveRecord(record);
+        } catch (IOException e) {
+            System.err.println("[Persistence Warning] Failed to save record to permanent storage: " + e.getMessage());
+        }
+
         return record;
     }
 
@@ -207,10 +234,9 @@ public class RiverMonitoringService {
     }
 
     /**
-     * Estimates water level from a staff gauge image and logs the record.
-     * Integrates image analysis (Unit V) with domain validation and exception handling (Unit IV).
+     * Estimates water level from a staff gauge image, logs the record, and persists to permanent storage.
      */
-    public GaugeProcessingResult processAndRecordGaugeImage(String stationId, String imagePath, String timestamp)
+    public synchronized GaugeProcessingResult processAndRecordGaugeImage(String stationId, String imagePath, String timestamp)
             throws StationNotFoundException, InvalidWaterLevelException {
         RiverStation station = getStationByIdOrThrow(stationId);
 
@@ -231,7 +257,30 @@ public class RiverMonitoringService {
         WaterLevelRecord record = station.generateReading(recordId, estimatedLevel, timestamp + " [Image Analysis]");
         this.records.add(record);
 
+        // Persist via DAO
+        try {
+            this.recordDAO.saveRecord(record);
+        } catch (IOException e) {
+            System.err.println("[Persistence Warning] Failed to persist image analysis reading: " + e.getMessage());
+        }
+
         return result;
+    }
+
+    /**
+     * Forces writing all in-memory stations and records back to permanent disk files
+     */
+    public synchronized void syncAllToStorage() throws IOException {
+        this.stationDAO.saveAllStations(this.stations);
+        this.recordDAO.saveAllRecords(this.records);
+    }
+
+    public StationDAO getStationDAO() {
+        return stationDAO;
+    }
+
+    public WaterLevelRecordDAO getRecordDAO() {
+        return recordDAO;
     }
 
     public WaterLevelImageProcessor getImageProcessor() {

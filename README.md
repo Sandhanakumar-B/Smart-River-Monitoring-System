@@ -85,13 +85,26 @@ SmartRiverWaterLevel/
 - Created `GenerateBenchmarkImages.java` producing calibrated test gauge images (`gauge_normal.png`, `gauge_warning.png`, `gauge_flood.png`)
 - Integrated image processing pipeline into `RiverMonitoringService` and interactive Menu Option 4 in `Main.java`
 
+### Day 7: Data Access Object (DAO) Pattern & CSV File Persistence
+- Designed and implemented **DAO Interface abstraction layer** (`src/dao/`):
+  - `StationDAO.java`: Interface defining CRUD persistence contracts for `RiverStation` entities
+  - `WaterLevelRecordDAO.java`: Interface defining persistence contracts for `WaterLevelRecord` entities
+  - `StationFileDAO.java`: Concrete CSV file-backed implementation (reads/writes `data/stations.csv`)
+  - `WaterLevelRecordFileDAO.java`: Concrete CSV file-backed implementation (reads/writes `data/readings.csv`)
+- Auto-seeds `data/stations.csv` and `data/readings.csv` with initial data on first launch
+- Integrated DAOs into `RiverMonitoringService` via **Dependency Injection constructor** for testability
+- All `registerStation()`, `recordMeasurement()`, and `processAndRecordGaugeImage()` now persist to disk via DAO
+- Added **Menu Option 8: DAO Storage & Data Persistence Management** — view/reload/flush CSV files from console
+- Updated `Main.java` to version **v0.7 (Day 7: DAO & File Persistence)**
+
 ---
 
 ## 💻 How to Compile and Run:
 ```bash
 # Compile all source files into bin/
-javac -d bin src/model/*.java src/exception/*.java src/imageprocessing/*.java src/service/*.java src/main/Main.java
+javac -d bin src/model/*.java src/exception/*.java src/imageprocessing/*.java src/dao/*.java src/service/*.java src/main/Main.java
 
 # Run the application
 java -cp bin main.Main
 ```
+
