@@ -28,7 +28,19 @@ SmartRiverWaterLevel/
 │   │   ├── GaugeProcessingResult.java
 │   │   ├── GenerateBenchmarkImages.java
 │   │   └── WaterLevelImageProcessor.java
-│   └── dao/
+│   ├── dao/
+│   │   ├── StationDAO.java
+│   │   ├── StationFileDAO.java
+│   │   ├── WaterLevelRecordDAO.java
+│   │   └── WaterLevelRecordFileDAO.java
+│   └── simulation/
+│       ├── RiverSimulationManager.java
+│       ├── SensorEvent.java
+│       ├── SensorEventListener.java
+│       └── StationSensorSimulator.java
+├── data/
+│   ├── readings.csv
+│   └── stations.csv
 ├── images/
 │   ├── gauge_flood.png
 │   ├── gauge_normal.png
@@ -97,12 +109,30 @@ SmartRiverWaterLevel/
 - Added **Menu Option 8: DAO Storage & Data Persistence Management** — view/reload/flush CSV files from console
 - Updated `Main.java` to version **v0.7 (Day 7: DAO & File Persistence)**
 
+### Day 8: Multithreading & Automated Real-Time Sensor / River Simulation
+- Implemented concurrent **Multithreading & Telemetry Simulation Architecture** (`src/simulation/`):
+  - `StationSensorSimulator.java`: Worker thread implementing `java.lang.Runnable` representing an autonomous IoT river station sensor
+  - `RiverSimulationManager.java`: Concurrency orchestrator managing multi-threaded sensor workers across all registered stations
+  - `SensorEvent.java`: Immutable telemetry event encapsulating station data, thread identifier, water level, and alert level
+  - `SensorEventListener.java`: Observer callback interface delivering asynchronous telemetry updates and flood warning notifications
+- **Concurrency & Thread Safety Mechanisms**:
+  - `CopyOnWriteArrayList` in `RiverMonitoringService` preventing `ConcurrentModificationException` during concurrent reads/writes
+  - Thread-safe DAO operations (`synchronized` persistence to `data/readings.csv`)
+  - Graceful thread lifecycle control using `volatile boolean running`, `volatile boolean paused`, and `Thread.interrupt()` / `join()`
+- **Hydrological Simulation & Dynamic Scenarios**:
+  - Realistic stochastic Markov Random Walk around baseline normal levels with natural ripple
+  - Flash flood cloudburst / dam discharge surge injection (+4.5m basin-wide or station-specific) testing concurrent alert handling
+- **Worker Thread Diagnostics & Telemetry Dashboard**:
+  - Runtime inspection of thread names, thread states (`TIMED_WAITING`, `RUNNABLE`), priority, and alive flags
+  - Added **Menu Option 9: ⚡ Real-Time Multithreaded Sensor & River Simulation (IoT Telemetry)**
+  - Updated `Main.java` to version **v0.8 (Day 8: Multithreading & Real-Time Simulation)**
+
 ---
 
 ## 💻 How to Compile and Run:
 ```bash
 # Compile all source files into bin/
-javac -d bin src/model/*.java src/exception/*.java src/imageprocessing/*.java src/dao/*.java src/service/*.java src/main/Main.java
+javac -d bin src/model/*.java src/exception/*.java src/imageprocessing/*.java src/dao/*.java src/service/*.java src/simulation/*.java src/main/Main.java
 
 # Run the application
 java -cp bin main.Main

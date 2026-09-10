@@ -13,13 +13,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import model.RiverStation;
 import model.WaterLevelRecord;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 7: Service Layer with Data Access Object (DAO) Integration & Permanent File Persistence
- * Syllabus Unit: UNIT III, IV & V - DAO Pattern, File I/O, Advanced Imaging, Modular Decoupling
+ * Day 8: Service Layer with Concurrent Multithreading & Thread-Safe Collections
+ * Syllabus Unit: UNIT III, IV & V - Thread Safety, CopyOnWriteArrayList, DAO Pattern, File I/O
  */
 public class RiverMonitoringService {
 
@@ -45,8 +46,8 @@ public class RiverMonitoringService {
     public RiverMonitoringService(StationDAO stationDAO, WaterLevelRecordDAO recordDAO) {
         this.stationDAO = stationDAO;
         this.recordDAO = recordDAO;
-        this.stations = new ArrayList<>();
-        this.records = new ArrayList<>();
+        this.stations = new CopyOnWriteArrayList<>();
+        this.records = new CopyOnWriteArrayList<>();
         this.imageProcessor = new WaterLevelImageProcessor();
         loadDataFromStorage();
     }

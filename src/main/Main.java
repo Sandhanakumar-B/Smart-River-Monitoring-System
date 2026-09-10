@@ -15,15 +15,20 @@ import java.util.Scanner;
 import model.RiverStation;
 import model.WaterLevelRecord;
 import service.RiverMonitoringService;
+import simulation.RiverSimulationManager;
+import simulation.SensorEvent;
+import simulation.SensorEventListener;
+import simulation.StationSensorSimulator;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 7: Data Access Object (DAO) Pattern, CSV File Persistence & Full Layered Integration
- * Syllabus Unit: UNIT III, IV & V - File Streams, DAO Abstraction, Exception Recovery & Modular Design
+ * Day 8: Multithreading, Concurrent IoT Sensor Telemetry & Automated River Simulation
+ * Syllabus Unit: UNIT III, IV & V - Multithreading, Thread Synchronization, Event Listeners, File Persistence
  */
 public class Main {
 
     private static final RiverMonitoringService monitoringService = new RiverMonitoringService();
+    private static final RiverSimulationManager simulationManager = new RiverSimulationManager(monitoringService);
     private static RiverStation activeStation;
 
     public static void main(String[] args) {
@@ -39,7 +44,7 @@ public class Main {
 
         while (running) {
             displayMenu();
-            System.out.print("Enter your choice (1-10): ");
+            System.out.print("Enter your choice (1-11): ");
 
             if (scanner.hasNextInt()) {
                 int choice = scanner.nextInt();
@@ -72,14 +77,19 @@ public class Main {
                         manageStorageAndPersistence(scanner);
                         break;
                     case 9:
-                        displaySystemStatus();
+                        manageRealTimeSimulation(scanner);
                         break;
                     case 10:
+                        displaySystemStatus();
+                        break;
+                    case 11:
+                        System.out.println("Stopping background sensor threads and safely shutting down...");
+                        simulationManager.stopSimulation();
                         System.out.println("Exiting system. All records safely persisted via DAO. Thank you!");
                         running = false;
                         break;
                     default:
-                        System.out.println("Invalid option! Please enter a number between 1 and 10.");
+                        System.out.println("Invalid option! Please enter a number between 1 and 11.");
                 }
             } else {
                 System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical menu option.");
@@ -99,7 +109,7 @@ public class Main {
         System.out.println("   SMART RIVER WATER LEVEL MONITORING & DATA COLLECTION     ");
         System.out.println("               (Using Image Processing)                     ");
         System.out.println("============================================================");
-        System.out.println("Academic Prototype - Core Java Console Edition (Day 7: DAO & File Persistence)\n");
+        System.out.println("Academic Prototype - Core Java Console Edition (Day 8: Multithreading & Simulation)\n");
     }
 
     private static void displayMenu() {
@@ -112,8 +122,9 @@ public class Main {
         System.out.println("6. View All Reading History & Basin Analytics");
         System.out.println("7. View Critical Flood Alert Records");
         System.out.println("8. 💾 DAO Storage & Data Persistence Management (CSV Inspection / Reload)");
-        System.out.println("9. System Architecture & Status");
-        System.out.println("10. Exit");
+        System.out.println("9. ⚡ Real-Time Multithreaded Sensor & River Simulation (IoT Telemetry)");
+        System.out.println("10. System Architecture & Status");
+        System.out.println("11. Exit");
     }
 
     private static void displayAllStations() {
@@ -324,6 +335,7 @@ public class Main {
         // UNIT IV: Catching custom DuplicateStationException
         try {
             monitoringService.registerStation(newStation);
+            simulationManager.refreshSimulators();
             System.out.println("\n[SUCCESS] New monitoring station registered successfully and persisted to disk!");
             System.out.println("  " + newStation.toString());
         } catch (DuplicateStationException e) {
@@ -480,10 +492,253 @@ public class Main {
         }
     }
 
+    private static void manageRealTimeSimulation(Scanner scanner) {
+        boolean inSimulationMenu = true;
+
+        while (inSimulationMenu) {
+            System.out.println("=== ⚡ REAL-TIME MULTITHREADED SENSOR & RIVER SIMULATION ===");
+            System.out.println("Background worker threads simulate automated IoT river sensors concurrently.");
+            System.out.println("Simulation Status : " + (simulationManager.isRunning() ? "🟢 ACTIVE (Running concurrently)" : "⚪ IDLE (Stopped)"));
+            System.out.println("Worker Threads    : " + simulationManager.getSimulators().size() + " Station Workers");
+            System.out.println("Sampling Interval : " + simulationManager.getDefaultIntervalMillis() + " ms");
+            System.out.println();
+            System.out.println("SIMULATION CONTROLS:");
+            System.out.println("1. Start Live Streaming Telemetry (Console Monitor - Press Enter to Stop)");
+            System.out.println("2. Run Automated Simulation Batch (e.g. 5 concurrent sensor cycles)");
+            System.out.println("3. ⚠️ Trigger Basin-Wide Flash Flood Surge Scenario (+4.5m rise)");
+            System.out.println("4. ⚠️ Trigger Cloudburst Surge at Active/Specific Station");
+            System.out.println("5. View Worker Thread Diagnostics & Health Status");
+            System.out.println("6. Configure Telemetry Tick Interval");
+            System.out.println("7. Stop / Terminate Background Simulation");
+            System.out.println("8. Return to Main Menu");
+            System.out.print("Enter simulation choice (1-8): ");
+
+            if (!scanner.hasNextInt()) {
+                System.out.println("[INPUT ERROR] Invalid choice format.\n");
+                scanner.nextLine();
+                continue;
+            }
+
+            int simChoice = scanner.nextInt();
+            scanner.nextLine(); // consume newline
+
+            System.out.println();
+            switch (simChoice) {
+                case 1:
+                    runLiveConsoleMonitor(scanner);
+                    break;
+                case 2:
+                    runFastSimulationBatch(scanner);
+                    break;
+                case 3:
+                    triggerBasinSurge();
+                    break;
+                case 4:
+                    triggerStationSpecificSurge(scanner);
+                    break;
+                case 5:
+                    displayThreadDiagnostics();
+                    break;
+                case 6:
+                    configureSimulationInterval(scanner);
+                    break;
+                case 7:
+                    simulationManager.stopSimulation();
+                    System.out.println("[SUCCESS] Background simulation halted. Worker threads terminated.");
+                    break;
+                case 8:
+                    inSimulationMenu = false;
+                    break;
+                default:
+                    System.out.println("Invalid option! Please enter a number between 1 and 8.");
+            }
+
+            if (inSimulationMenu) {
+                System.out.println("\n------------------------------------------------------------");
+            }
+        }
+    }
+
+    private static void runLiveConsoleMonitor(Scanner scanner) {
+        System.out.println("\n--- STARTING LIVE TELEMETRY CONSOLE MONITOR ---");
+        System.out.println("Dedicated worker threads are streaming real-time measurements in parallel.");
+        System.out.println("Press [ENTER] at any moment to pause and return to the menu.\n");
+
+        SensorEventListener monitorListener = new SensorEventListener() {
+            @Override
+            public void onReadingReceived(SensorEvent event) {
+                String badge = event.isAlert() ? " ⚠️ [CRITICAL ALERT!]" : "";
+                System.out.printf("  [%s] Telemetry: %-32s -> %5.2fm | %-16s%s\n",
+                    event.getThreadName(),
+                    event.getStationName() + " (" + event.getStationId() + ")",
+                    event.getWaterLevelMeters(),
+                    event.getAlertStatus(),
+                    badge);
+            }
+
+            @Override
+            public void onAlertTriggered(SensorEvent event) {
+                System.out.printf("  🚨 [DANGER EVENT TRIGGERED] %s breached danger limit (%.2fm) at %s!\n",
+                    event.getStationId(), event.getWaterLevelMeters(), event.getTimestamp());
+            }
+
+            @Override
+            public void onSimulationStatusChanged(String statusMessage) {
+                System.out.println("  [Simulation Event] " + statusMessage);
+            }
+        };
+
+        simulationManager.addGlobalListener(monitorListener);
+        if (!simulationManager.isRunning()) {
+            simulationManager.startSimulation();
+        }
+
+        // Block until user hits Enter
+        scanner.nextLine();
+
+        simulationManager.removeGlobalListener(monitorListener);
+        System.out.println("\n[INFO] Exited live monitor stream.");
+        System.out.print("Do you want to keep background threads streaming? (y/n): ");
+        String keepRunning = scanner.nextLine().trim();
+        if (!keepRunning.equalsIgnoreCase("y")) {
+            simulationManager.stopSimulation();
+            System.out.println("[INFO] Simulation worker threads stopped.");
+        } else {
+            System.out.println("[INFO] Simulation worker threads continue streaming in background.");
+        }
+    }
+
+    private static void runFastSimulationBatch(Scanner scanner) {
+        System.out.println("\n--- RUN AUTOMATED SIMULATION BATCH ---");
+        System.out.print("Enter number of measurement cycles to simulate (1-20, default 5): ");
+        int cycles = 5;
+        String input = scanner.nextLine().trim();
+        if (!input.isEmpty()) {
+            try {
+                cycles = Integer.parseInt(input);
+                if (cycles < 1 || cycles > 50) {
+                    cycles = 5;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid number, defaulting to 5 cycles.");
+            }
+        }
+
+        long origInterval = simulationManager.getDefaultIntervalMillis();
+        simulationManager.setDefaultIntervalMillis(400); // fast cadence for batch test
+
+        int beforeCount = monitoringService.getTotalReadingsCount();
+
+        SensorEventListener batchListener = new SensorEventListener() {
+            @Override
+            public void onReadingReceived(SensorEvent event) {
+                String badge = event.isAlert() ? " ⚠️ [ALERT]" : "";
+                System.out.printf("  ✓ [%s] %-28s -> %5.2fm | %-16s%s\n",
+                    event.getThreadName(), event.getStationId(), event.getWaterLevelMeters(), event.getAlertStatus(), badge);
+            }
+
+            @Override
+            public void onAlertTriggered(SensorEvent event) {
+                System.out.printf("  >>> 🚨 High Alert Triggered by %s!\n", event.getStationId());
+            }
+
+            @Override
+            public void onSimulationStatusChanged(String statusMessage) {
+                // quiet in batch mode
+            }
+        };
+
+        simulationManager.addGlobalListener(batchListener);
+        System.out.println("Executing " + cycles + " concurrent cycles across all stations...\n");
+        simulationManager.startSimulation();
+
+        try {
+            Thread.sleep(cycles * 450L);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        simulationManager.stopSimulation();
+        simulationManager.removeGlobalListener(batchListener);
+        simulationManager.setDefaultIntervalMillis(origInterval); // restore interval
+
+        int afterCount = monitoringService.getTotalReadingsCount();
+        int added = afterCount - beforeCount;
+
+        System.out.println("\n[BATCH COMPLETE] Successfully captured and persisted " + added + " new telemetry readings via DAO!");
+        System.out.println("Total readings currently in system: " + afterCount);
+    }
+
+    private static void triggerBasinSurge() {
+        System.out.println("\n--- SIMULATING BASIN-WIDE FLASH FLOOD SURGE ---");
+        System.out.println("Applying heavy monsoon rainfall surge (+4.50m) across all monitored river stations...");
+        simulationManager.triggerBasinSurge(4.50);
+        System.out.println("[SUCCESS] Surge injected! All station worker threads will immediately register elevated water levels.");
+        System.out.println("Check Menu Option 7 (Critical Alerts) or run Option 9-1 (Live Stream) to observe real-time triggers.");
+    }
+
+    private static void triggerStationSpecificSurge(Scanner scanner) {
+        System.out.println("\n--- SIMULATING CLOUDBURST / LOCALIZED DAM DISCHARGE ---");
+        String targetId = (activeStation != null) ? activeStation.getStationId() : "STN-HAR-01";
+        System.out.print("Enter target Station ID [" + targetId + "]: ");
+        String entered = scanner.nextLine().trim();
+        if (!entered.isEmpty()) {
+            targetId = entered;
+        }
+
+        System.out.print("Enter water level surge in meters (e.g., 5.0): ");
+        double surge = 5.0;
+        if (scanner.hasNextDouble()) {
+            surge = scanner.nextDouble();
+            scanner.nextLine();
+        } else {
+            scanner.nextLine();
+        }
+
+        boolean success = simulationManager.triggerStationSurge(targetId, surge);
+        if (success) {
+            System.out.printf("\n[SUCCESS] Injected +%.2fm surge into %s!\n", surge, targetId);
+        } else {
+            System.out.println("\n[ERROR] Station ID not found in active simulators.");
+        }
+    }
+
+    private static void displayThreadDiagnostics() {
+        System.out.println("\n================ WORKER THREAD DIAGNOSTICS ================");
+        System.out.println("Simulation Running : " + simulationManager.isRunning());
+        System.out.println("Default Interval   : " + simulationManager.getDefaultIntervalMillis() + " ms");
+        System.out.println("Active Simulators  : " + simulationManager.getSimulators().size());
+        System.out.println("-----------------------------------------------------------");
+        List<String> reports = simulationManager.getThreadDiagnosticReport();
+        for (String rep : reports) {
+            System.out.println(" " + rep);
+        }
+        System.out.println("===========================================================");
+    }
+
+    private static void configureSimulationInterval(Scanner scanner) {
+        System.out.println("\n--- CONFIGURE SENSOR SAMPLING INTERVAL ---");
+        System.out.println("Current interval: " + simulationManager.getDefaultIntervalMillis() + " ms");
+        System.out.print("Enter new interval in milliseconds (min 500 ms, e.g., 2000): ");
+
+        if (scanner.hasNextLong()) {
+            long newInterval = scanner.nextLong();
+            scanner.nextLine();
+            simulationManager.setDefaultIntervalMillis(newInterval);
+            System.out.println("[SUCCESS] Sampling interval updated to: " + simulationManager.getDefaultIntervalMillis() + " ms");
+        } else {
+            System.out.println("[INPUT ERROR] Invalid numeric interval.");
+            scanner.nextLine();
+        }
+    }
+
     private static void displaySystemStatus() {
         System.out.println("================ SYSTEM ARCHITECTURE & STATUS ================");
-        System.out.println("System Version : v0.7 (Day 7: DAO Pattern & CSV File Persistence Active)");
-        System.out.println("Architecture   : Layered (Model -> DAO -> Service -> ImageProcessing -> Presentation)");
+        System.out.println("System Version : v0.8 (Day 8: Multithreading & Real-Time Sensor Telemetry)");
+        System.out.println("Architecture   : Layered (Model -> DAO -> Service -> Simulation -> ImageProcessing -> UI)");
+        System.out.println("Multithreading : Active (Dedicated Worker Threads per Station implementing Runnable)");
+        System.out.println("Simulation Mgr : " + (simulationManager.isRunning() ? "🟢 Running (" + simulationManager.getSimulators().size() + " worker threads)" : "⚪ Idle / Standby"));
+        System.out.println("Thread Safety  : CopyOnWriteArrayList + Synchronized Service & DAO Methods");
         System.out.println("DAO Layer      : StationDAO, StationFileDAO, WaterLevelRecordDAO, WaterLevelRecordFileDAO");
         System.out.println("Storage Media  : data/stations.csv & data/readings.csv");
         System.out.println("Image Engine   : Region of Interest (ROI) Edge Detection & Pixel Calibration");
