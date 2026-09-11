@@ -19,16 +19,20 @@ import simulation.RiverSimulationManager;
 import simulation.SensorEvent;
 import simulation.SensorEventListener;
 import simulation.StationSensorSimulator;
+import network.MonitoringServer;
+import network.MonitoringClient;
+import java.io.IOException;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 8: Multithreading, Concurrent IoT Sensor Telemetry & Automated River Simulation
- * Syllabus Unit: UNIT III, IV & V - Multithreading, Thread Synchronization, Event Listeners, File Persistence
+ * Day 9: Java Networking & Socket Programming — TCP Client-Server River Monitoring
+ * Syllabus Unit: UNIT III, IV & V - Multithreading, Thread Synchronization, Networking, File Persistence
  */
 public class Main {
 
     private static final RiverMonitoringService monitoringService = new RiverMonitoringService();
     private static final RiverSimulationManager simulationManager = new RiverSimulationManager(monitoringService);
+    private static final MonitoringServer        networkServer     = new MonitoringServer(monitoringService);
     private static RiverStation activeStation;
 
     public static void main(String[] args) {
@@ -44,7 +48,7 @@ public class Main {
 
         while (running) {
             displayMenu();
-            System.out.print("Enter your choice (1-11): ");
+            System.out.print("Enter your choice (1-12): ");
 
             if (scanner.hasNextInt()) {
                 int choice = scanner.nextInt();
@@ -80,16 +84,20 @@ public class Main {
                         manageRealTimeSimulation(scanner);
                         break;
                     case 10:
-                        displaySystemStatus();
+                        manageNetworkServer(scanner);
                         break;
                     case 11:
-                        System.out.println("Stopping background sensor threads and safely shutting down...");
+                        displaySystemStatus();
+                        break;
+                    case 12:
+                        System.out.println("Stopping background sensor threads and network server...");
                         simulationManager.stopSimulation();
+                        if (networkServer.isRunning()) networkServer.stopServer();
                         System.out.println("Exiting system. All records safely persisted via DAO. Thank you!");
                         running = false;
                         break;
                     default:
-                        System.out.println("Invalid option! Please enter a number between 1 and 11.");
+                        System.out.println("Invalid option! Please enter a number between 1 and 12.");
                 }
             } else {
                 System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical menu option.");
@@ -109,7 +117,7 @@ public class Main {
         System.out.println("   SMART RIVER WATER LEVEL MONITORING & DATA COLLECTION     ");
         System.out.println("               (Using Image Processing)                     ");
         System.out.println("============================================================");
-        System.out.println("Academic Prototype - Core Java Console Edition (Day 8: Multithreading & Simulation)\n");
+        System.out.println("Academic Prototype - Core Java Console Edition (Day 9: Networking & Socket Programming)\n");
     }
 
     private static void displayMenu() {
@@ -123,8 +131,9 @@ public class Main {
         System.out.println("7. View Critical Flood Alert Records");
         System.out.println("8. 💾 DAO Storage & Data Persistence Management (CSV Inspection / Reload)");
         System.out.println("9. ⚡ Real-Time Multithreaded Sensor & River Simulation (IoT Telemetry)");
-        System.out.println("10. System Architecture & Status");
-        System.out.println("11. Exit");
+        System.out.println("10. 🌐 TCP Networking & Remote Monitoring Server (Socket Programming)");
+        System.out.println("11. System Architecture & Status");
+        System.out.println("12. Exit");
     }
 
     private static void displayAllStations() {
@@ -732,12 +741,123 @@ public class Main {
         }
     }
 
+    private static void manageNetworkServer(Scanner scanner) {
+        System.out.println("================ 🌐 TCP NETWORKING & REMOTE MONITORING SERVER ================");
+        System.out.println("Syllabus: UNIT V - java.net.ServerSocket, Socket, InputStream/OutputStream, Multi-Client");
+        System.out.println("Server Status : " + (networkServer.isRunning() ?
+            "🟢 RUNNING on port " + networkServer.getPort() +
+            " | Clients served: " + networkServer.getTotalClientsServed()
+            : "⚪ STOPPED"));
+        System.out.println();
+        System.out.println("NETWORKING MENU:");
+        System.out.println("  1. Start TCP Monitoring Server (bind to port " + network.MonitoringProtocol.DEFAULT_PORT + ")");
+        System.out.println("  2. Stop TCP Monitoring Server");
+        System.out.println("  3. Connect as Remote Client (interactive query session)");
+        System.out.println("  4. Run Automated Client Demo (headless protocol test)");
+        System.out.println("  5. View Protocol Reference");
+        System.out.println("  6. Back to Main Menu");
+        System.out.print("Enter choice: ");
+
+        String input = scanner.nextLine().trim();
+        switch (input) {
+            case "1":
+                startNetworkServer();
+                break;
+            case "2":
+                networkServer.stopServer();
+                break;
+            case "3":
+                if (!networkServer.isRunning()) {
+                    System.out.println("[WARN] Server is not running. Starting it first...");
+                    startNetworkServer();
+                }
+                MonitoringClient client = new MonitoringClient();
+                client.runInteractiveSession(scanner);
+                break;
+            case "4":
+                runAutomatedClientDemo();
+                break;
+            case "5":
+                displayProtocolReference();
+                break;
+            case "6":
+            default:
+                System.out.println("Returning to main menu.");
+        }
+    }
+
+    private static void startNetworkServer() {
+        try {
+            networkServer.startServer();
+        } catch (IOException e) {
+            System.out.println("[ERROR] Could not start server: " + e.getMessage());
+            System.out.println("Hint: Port " + network.MonitoringProtocol.DEFAULT_PORT +
+                " may already be in use. Try restarting the application.");
+        }
+    }
+
+    private static void runAutomatedClientDemo() {
+        if (!networkServer.isRunning()) {
+            System.out.println("[WARN] Server not running. Starting first...");
+            startNetworkServer();
+        }
+        System.out.println("\n--- AUTOMATED CLIENT DEMO (Headless Protocol Verification) ---");
+        MonitoringClient autoClient = new MonitoringClient();
+        String[] demoCommands = {
+            network.MonitoringProtocol.CMD_SERVER_STATUS,
+            network.MonitoringProtocol.CMD_LIST_STATIONS,
+            network.MonitoringProtocol.CMD_BASIN_STATS,
+            network.MonitoringProtocol.CMD_GET_ALERTS
+        };
+        for (String cmd : demoCommands) {
+            System.out.println("\n  > Sending: " + cmd);
+            try {
+                String response = autoClient.sendCommand(cmd);
+                for (String line : response.split("\n")) {
+                    System.out.println("  " + line);
+                }
+            } catch (IOException e) {
+                System.out.println("  [ERROR] " + e.getMessage());
+            }
+            try { Thread.sleep(200); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+        }
+        System.out.println("\n[DEMO COMPLETE] All protocol commands verified successfully.");
+    }
+
+    private static void displayProtocolReference() {
+        System.out.println("\n====== TCP PROTOCOL REFERENCE (Text-Based, Line-Delimited) ======");
+        System.out.println(" Port      : " + network.MonitoringProtocol.DEFAULT_PORT);
+        System.out.println(" Host      : " + network.MonitoringProtocol.SERVER_HOST);
+        System.out.println(" Timeout   : " + network.MonitoringProtocol.SOCKET_TIMEOUT_MS / 1000 + " s");
+        System.out.println();
+        System.out.println(" COMMANDS (Client → Server):");
+        System.out.println("   LIST_STATIONS          - Get all registered river stations");
+        System.out.println("   GET_LEVEL  <stationId> - Get latest water level reading for a station");
+        System.out.println("   GET_HISTORY <stationId> - Get all historical readings for a station");
+        System.out.println("   GET_ALERTS             - Get all critical flood alert records");
+        System.out.println("   BASIN_STATS            - Get basin-wide analytics");
+        System.out.println("   SERVER_STATUS          - Get server health info");
+        System.out.println("   QUIT                   - Close session");
+        System.out.println();
+        System.out.println(" RESPONSE FORMAT (Server → Client):");
+        System.out.println("   OK <message>           - Successful response header");
+        System.out.println("   |field1|field2|...     - Data rows (pipe-delimited)");
+        System.out.println("   ERROR <message>        - Error response");
+        System.out.println("   END                    - End-of-response marker");
+        System.out.println("  WELCOME <banner>        - Server welcome message on connect");
+        System.out.println("==================================================================");
+    }
+
     private static void displaySystemStatus() {
         System.out.println("================ SYSTEM ARCHITECTURE & STATUS ================");
-        System.out.println("System Version : v0.8 (Day 8: Multithreading & Real-Time Sensor Telemetry)");
-        System.out.println("Architecture   : Layered (Model -> DAO -> Service -> Simulation -> ImageProcessing -> UI)");
+        System.out.println("System Version : v0.9 (Day 9: Java Networking & Socket Programming)");
+        System.out.println("Architecture   : Layered (Model -> DAO -> Service -> Simulation -> ImageProcessing -> Network -> UI)");
         System.out.println("Multithreading : Active (Dedicated Worker Threads per Station implementing Runnable)");
         System.out.println("Simulation Mgr : " + (simulationManager.isRunning() ? "🟢 Running (" + simulationManager.getSimulators().size() + " worker threads)" : "⚪ Idle / Standby"));
+        System.out.println("Network Server : " + (networkServer.isRunning() ?
+            "🟢 Listening on port " + networkServer.getPort() +
+            " | Clients served: " + networkServer.getTotalClientsServed()
+            : "⚪ Offline"));
         System.out.println("Thread Safety  : CopyOnWriteArrayList + Synchronized Service & DAO Methods");
         System.out.println("DAO Layer      : StationDAO, StationFileDAO, WaterLevelRecordDAO, WaterLevelRecordFileDAO");
         System.out.println("Storage Media  : data/stations.csv & data/readings.csv");
