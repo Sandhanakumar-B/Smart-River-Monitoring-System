@@ -33,11 +33,17 @@ SmartRiverWaterLevel/
 │   │   ├── StationFileDAO.java
 │   │   ├── WaterLevelRecordDAO.java
 │   │   └── WaterLevelRecordFileDAO.java
-│   └── simulation/
-│       ├── RiverSimulationManager.java
-│       ├── SensorEvent.java
-│       ├── SensorEventListener.java
-│       └── StationSensorSimulator.java
+│   ├── simulation/
+│   │   ├── RiverSimulationManager.java
+│   │   ├── SensorEvent.java
+│   │   ├── SensorEventListener.java
+│   │   └── StationSensorSimulator.java
+│   └── network/
+│       ├── MonitoringProtocol.java
+│       ├── MonitoringServer.java
+│       ├── ClientHandler.java
+│       ├── MonitoringClient.java
+│       └── TestNetworking.java
 ├── data/
 │   ├── readings.csv
 │   └── stations.csv
@@ -127,12 +133,31 @@ SmartRiverWaterLevel/
   - Added **Menu Option 9: ⚡ Real-Time Multithreaded Sensor & River Simulation (IoT Telemetry)**
   - Updated `Main.java` to version **v0.8 (Day 8: Multithreading & Real-Time Simulation)**
 
+### Day 9: Java Networking & Socket Programming — TCP Client-Server Architecture
+- Designed and implemented a full **TCP Client-Server Networking Layer** (`src/network/`):
+  - `MonitoringProtocol.java`: Shared protocol constants — commands (`LIST_STATIONS`, `GET_LEVEL`, `GET_HISTORY`, `GET_ALERTS`, `BASIN_STATS`, `SERVER_STATUS`, `QUIT`) and response tokens (`OK`, `ERROR`, `END`, `WELCOME`) and pipe-delimited `FIELD_SEP`
+  - `MonitoringServer.java`: TCP server using `java.net.ServerSocket` with an `ExecutorService` fixed thread-pool (up to 10 simultaneous clients), `AtomicInteger` client counter, and graceful `stopServer()` shutdown sequence
+  - `ClientHandler.java`: `Runnable` per-client handler wrapping `Socket` I/O streams (`BufferedReader` / `PrintWriter`) — dispatches all 6 protocol commands to `RiverMonitoringService` and manages socket timeout (`setSoTimeout`)
+  - `MonitoringClient.java`: TCP client (`java.net.Socket`) with an interactive REPL session and a headless `sendCommand()` API for programmatic / automated queries
+  - `TestNetworking.java`: End-to-end verification — starts server, runs 6 command queries, verifies all `OK` responses, tests unknown command `ERROR` handling, and validates 3 concurrent multi-client connections simultaneously
+- **Key Java Networking Concepts Demonstrated (Syllabus UNIT V)**:
+  - `ServerSocket.accept()` blocking loop on a dedicated daemon thread
+  - `Socket` bidirectional I/O via `InputStream` / `OutputStream` wrapped as text streams
+  - Thread-pool (`ExecutorService`) for concurrent multi-client handling without raw `Thread` creation
+  - `SocketTimeoutException` handling for idle client disconnection (`30 s` server / `15 s` client timeout)
+  - `try-with-resources` for automatic stream and socket closure
+  - `volatile boolean running` + `AtomicInteger` for thread-safe lifecycle management
+- **Interactive Console Integration**:
+  - Added **Menu Option 10: 🌐 TCP Networking & Remote Monitoring Server (Socket Programming)** with sub-options: start/stop server, connect as remote client, run automated demo, and view protocol reference
+  - Updated `Main.java` to version **v0.9 (Day 9: Java Networking & Socket Programming)**
+- **Verification**: All 9 networking test assertions passed — SERVER_STATUS, LIST_STATIONS, BASIN_STATS, GET_ALERTS, GET_LEVEL, unknown-command ERROR, and 3-concurrent-client multi-connection test
+
 ---
 
 ## 💻 How to Compile and Run:
 ```bash
 # Compile all source files into bin/
-javac -d bin src/model/*.java src/exception/*.java src/imageprocessing/*.java src/dao/*.java src/service/*.java src/simulation/*.java src/main/Main.java
+javac -d bin src/model/*.java src/exception/*.java src/imageprocessing/*.java src/dao/*.java src/service/*.java src/simulation/*.java src/network/*.java src/main/Main.java
 
 # Run the application
 java -cp bin main.Main
