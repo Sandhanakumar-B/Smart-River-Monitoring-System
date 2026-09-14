@@ -21,7 +21,9 @@ import simulation.SensorEventListener;
 import simulation.StationSensorSimulator;
 import network.MonitoringServer;
 import network.MonitoringClient;
-import java.io.IOException;
+import dao.jdbc.DatabaseConnectionManager;
+import dao.jdbc.StationJdbcDAO;
+import dao.jdbc.WaterLevelRecordJdbcDAO;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
@@ -87,9 +89,12 @@ public class Main {
                         manageNetworkServer(scanner);
                         break;
                     case 11:
-                        displaySystemStatus();
+                        manageJdbcDatabase(scanner);
                         break;
                     case 12:
+                        displaySystemStatus();
+                        break;
+                    case 13:
                         System.out.println("Stopping background sensor threads and network server...");
                         simulationManager.stopSimulation();
                         if (networkServer.isRunning()) networkServer.stopServer();
@@ -97,7 +102,7 @@ public class Main {
                         running = false;
                         break;
                     default:
-                        System.out.println("Invalid option! Please enter a number between 1 and 12.");
+                        System.out.println("Invalid option! Please enter a number between 1 and 13.");
                 }
             } else {
                 System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical menu option.");
@@ -117,7 +122,7 @@ public class Main {
         System.out.println("   SMART RIVER WATER LEVEL MONITORING & DATA COLLECTION     ");
         System.out.println("               (Using Image Processing)                     ");
         System.out.println("============================================================");
-        System.out.println("Academic Prototype - Core Java Console Edition (Day 9: Networking & Socket Programming)\n");
+        System.out.println("Academic Prototype - Core Java Console Edition (Day 10: JDBC Database Connectivity & Relational Persistence)\n");
     }
 
     private static void displayMenu() {
@@ -132,8 +137,9 @@ public class Main {
         System.out.println("8. 💾 DAO Storage & Data Persistence Management (CSV Inspection / Reload)");
         System.out.println("9. ⚡ Real-Time Multithreaded Sensor & River Simulation (IoT Telemetry)");
         System.out.println("10. 🌐 TCP Networking & Remote Monitoring Server (Socket Programming)");
-        System.out.println("11. System Architecture & Status");
-        System.out.println("12. Exit");
+        System.out.println("11. 🗄️ JDBC Database Connectivity & Relational SQL Console (UNIT V)");
+        System.out.println("12. System Architecture & Status");
+        System.out.println("13. Exit");
     }
 
     private static void displayAllStations() {
@@ -848,10 +854,103 @@ public class Main {
         System.out.println("==================================================================");
     }
 
+    private static void manageJdbcDatabase(Scanner scanner) {
+        boolean back = false;
+        DatabaseConnectionManager dbManager = DatabaseConnectionManager.getInstance();
+
+        while (!back) {
+            System.out.println("\n====== 🗄️ JDBC DATABASE CONNECTIVITY & SQL CONSOLE (UNIT V) ======");
+            System.out.println("Active DAO Backend : " + monitoringService.getStationDAO().getStorageSource());
+            System.out.println("JDBC Driver URL    : " + dbManager.getJdbcUrl());
+            System.out.println("------------------------------------------------------------------");
+            System.out.println("1. Test Connection & Inspect DatabaseMetaData");
+            System.out.println("2. Initialize Relational Schema (DDL: CREATE TABLE)");
+            System.out.println("3. View Relational Table Row Counts & Contents");
+            System.out.println("4. Execute Custom SQL Query (Interactive Console)");
+            System.out.println("5. Migrate / Synchronize In-Memory Data into Relational Database");
+            System.out.println("6. Switch Active Persistence Engine (CSV File DAO <-> JDBC DAO)");
+            System.out.println("7. Run Automated JDBC Verification Suite");
+            System.out.println("8. Return to Main Menu");
+            System.out.print("Select an option (1-8): ");
+
+            if (scanner.hasNextInt()) {
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // consume newline
+                switch (choice) {
+                    case 1:
+                        System.out.println("\n" + dbManager.getDatabaseDiagnostics());
+                        break;
+                    case 2:
+                        try {
+                            dbManager.initializeSchema();
+                            System.out.println("\n[SUCCESS] Relational tables 'stations' and 'readings' initialized successfully via JDBC Statement DDL.");
+                        } catch (Exception e) {
+                            System.out.println("\n[ERROR] Failed to initialize schema: " + e.getMessage());
+                        }
+                        break;
+                    case 3:
+                        System.out.println("\n--- RELATIONAL TABLE: stations ---");
+                        System.out.println(dbManager.executeQueryAndFormat("SELECT * FROM stations"));
+                        System.out.println("--- RELATIONAL TABLE: readings ---");
+                        System.out.println(dbManager.executeQueryAndFormat("SELECT * FROM readings"));
+                        break;
+                    case 4:
+                        System.out.print("\nEnter SQL statement (e.g., SELECT * FROM stations): ");
+                        String customSql = scanner.nextLine().trim();
+                        if (!customSql.isEmpty()) {
+                            System.out.println(dbManager.executeQueryAndFormat(customSql));
+                        }
+                        break;
+                    case 5:
+                        try {
+                            System.out.println("\nMigrating in-memory records to JDBC relational tables...");
+                            StationJdbcDAO jdbcStation = new StationJdbcDAO(dbManager);
+                            WaterLevelRecordJdbcDAO jdbcRecord = new WaterLevelRecordJdbcDAO(dbManager);
+                            jdbcStation.saveAllStations(monitoringService.getAllStations());
+                            jdbcRecord.saveAllRecords(monitoringService.getAllRecords());
+                            System.out.printf("[SUCCESS] Migrated %d stations and %d readings into JDBC tables.\n",
+                                monitoringService.getTotalStationsCount(), monitoringService.getTotalReadingsCount());
+                        } catch (Exception e) {
+                            System.out.println("\n[ERROR] Migration failed: " + e.getMessage());
+                        }
+                        break;
+                    case 6:
+                        try {
+                            boolean isCurrentlyJdbc = monitoringService.getStationDAO() instanceof StationJdbcDAO;
+                            if (isCurrentlyJdbc) {
+                                monitoringService.switchStorageEngine(new StationFileDAO(), new WaterLevelRecordFileDAO(), false);
+                                System.out.println("\n[SWITCH COMPLETE] Switched active persistence to CSV File DAO (data/*.csv).");
+                            } else {
+                                StationJdbcDAO jdbcStation = new StationJdbcDAO(dbManager);
+                                WaterLevelRecordJdbcDAO jdbcRecord = new WaterLevelRecordJdbcDAO(dbManager);
+                                monitoringService.switchStorageEngine(jdbcStation, jdbcRecord, true);
+                                System.out.println("\n[SWITCH COMPLETE] Switched active persistence to JDBC Relational DAO (" + dbManager.getJdbcUrl() + ").");
+                            }
+                        } catch (Exception e) {
+                            System.out.println("\n[ERROR] Failed to switch storage engine: " + e.getMessage());
+                        }
+                        break;
+                    case 7:
+                        System.out.println("\nRunning Day 10 automated JDBC verification suite...");
+                        dao.jdbc.TestJdbc.main(new String[0]);
+                        break;
+                    case 8:
+                        back = true;
+                        break;
+                    default:
+                        System.out.println("Invalid option! Please enter a number between 1 and 8.");
+                }
+            } else {
+                System.out.println("[INPUT ERROR] Please enter a valid numerical choice.");
+                scanner.nextLine();
+            }
+        }
+    }
+
     private static void displaySystemStatus() {
         System.out.println("================ SYSTEM ARCHITECTURE & STATUS ================");
-        System.out.println("System Version : v0.9 (Day 9: Java Networking & Socket Programming)");
-        System.out.println("Architecture   : Layered (Model -> DAO -> Service -> Simulation -> ImageProcessing -> Network -> UI)");
+        System.out.println("System Version : v0.10 (Day 10: JDBC Database Connectivity & Relational Persistence)");
+        System.out.println("Architecture   : Layered (Model -> DAO -> Service -> Simulation -> ImageProcessing -> Network -> JDBC -> UI)");
         System.out.println("Multithreading : Active (Dedicated Worker Threads per Station implementing Runnable)");
         System.out.println("Simulation Mgr : " + (simulationManager.isRunning() ? "🟢 Running (" + simulationManager.getSimulators().size() + " worker threads)" : "⚪ Idle / Standby"));
         System.out.println("Network Server : " + (networkServer.isRunning() ?
@@ -859,8 +958,8 @@ public class Main {
             " | Clients served: " + networkServer.getTotalClientsServed()
             : "⚪ Offline"));
         System.out.println("Thread Safety  : CopyOnWriteArrayList + Synchronized Service & DAO Methods");
-        System.out.println("DAO Layer      : StationDAO, StationFileDAO, WaterLevelRecordDAO, WaterLevelRecordFileDAO");
-        System.out.println("Storage Media  : data/stations.csv & data/readings.csv");
+        System.out.println("Active DAO     : " + monitoringService.getStationDAO().getStorageSource());
+        System.out.println("JDBC Database  : " + DatabaseConnectionManager.getInstance().getJdbcUrl() + " (Driver: RiverJdbcDriver)");
         System.out.println("Image Engine   : Region of Interest (ROI) Edge Detection & Pixel Calibration");
         System.out.println("Exceptions     : Checked Domain Exceptions (InvalidWaterLevel, StationNotFound, DuplicateStation)");
         System.out.println("Active Station : " + (activeStation != null ? activeStation.getStationName() : "None"));

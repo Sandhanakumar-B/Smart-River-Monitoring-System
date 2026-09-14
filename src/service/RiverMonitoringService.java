@@ -27,8 +27,8 @@ public class RiverMonitoringService {
     public static final double MIN_PERMISSIBLE_LEVEL = 0.0;
     public static final double MAX_PERMISSIBLE_LEVEL = 50.0;
 
-    private final StationDAO stationDAO;
-    private final WaterLevelRecordDAO recordDAO;
+    private volatile StationDAO stationDAO;
+    private volatile WaterLevelRecordDAO recordDAO;
     private final List<RiverStation> stations;
     private final List<WaterLevelRecord> records;
     private final WaterLevelImageProcessor imageProcessor;
@@ -269,11 +269,35 @@ public class RiverMonitoringService {
     }
 
     /**
-     * Forces writing all in-memory stations and records back to permanent disk files
+     * Forces writing all in-memory stations and records back to permanent storage
      */
     public synchronized void syncAllToStorage() throws IOException {
         this.stationDAO.saveAllStations(this.stations);
         this.recordDAO.saveAllRecords(this.records);
+    }
+
+    /**
+     * Dynamically switches the active persistence backend (e.g. between CSV File DAO and JDBC DAO).
+     * Demonstrates Strategy and Dependency Injection design patterns in UNIT II & UNIT V.
+     *
+     * @param newStationDAO Target StationDAO implementation
+     * @param newRecordDAO Target WaterLevelRecordDAO implementation
+     * @param migrateExistingData If true, writes current stations and readings into the new DAO
+     * @throws IOException If persistence fails
+     */
+    public synchronized void switchStorageEngine(StationDAO newStationDAO, WaterLevelRecordDAO newRecordDAO, boolean migrateExistingData) throws IOException {
+        if (newStationDAO == null || newRecordDAO == null) {
+            throw new IllegalArgumentException("DAO instances cannot be null.");
+        }
+        this.stationDAO = newStationDAO;
+        this.recordDAO = newRecordDAO;
+
+        if (migrateExistingData) {
+            this.stationDAO.saveAllStations(new ArrayList<>(this.stations));
+            this.recordDAO.saveAllRecords(new ArrayList<>(this.records));
+        } else {
+            loadDataFromStorage();
+        }
     }
 
     public StationDAO getStationDAO() {
