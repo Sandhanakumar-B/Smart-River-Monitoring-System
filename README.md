@@ -32,21 +32,34 @@ SmartRiverWaterLevel/
 │   │   ├── StationDAO.java
 │   │   ├── StationFileDAO.java
 │   │   ├── WaterLevelRecordDAO.java
-│   │   └── WaterLevelRecordFileDAO.java
+│   │   ├── WaterLevelRecordFileDAO.java
+│   │   └── jdbc/
+│   │       ├── DatabaseConnectionManager.java
+│   │       ├── RiverJdbcDriver.java
+│   │       ├── StationJdbcDAO.java
+│   │       ├── WaterLevelRecordJdbcDAO.java
+│   │       └── TestJdbc.java
 │   ├── simulation/
 │   │   ├── RiverSimulationManager.java
 │   │   ├── SensorEvent.java
 │   │   ├── SensorEventListener.java
 │   │   └── StationSensorSimulator.java
-│   └── network/
-│       ├── MonitoringProtocol.java
-│       ├── MonitoringServer.java
-│       ├── ClientHandler.java
-│       ├── MonitoringClient.java
-│       └── TestNetworking.java
+│   ├── network/
+│   │   ├── MonitoringProtocol.java
+│   │   ├── MonitoringServer.java
+│   │   ├── ClientHandler.java
+│   │   ├── MonitoringClient.java
+│   │   └── TestNetworking.java
+│   └── gui/
+│       ├── RiverGaugeVisualizerPanel.java
+│       ├── RiverMonitoringGUI.java
+│       └── TestGUI.java
+│   ├── main/
+│   │   └── Main.java
 ├── data/
 │   ├── readings.csv
-│   └── stations.csv
+│   ├── stations.csv
+│   └── riverdb.mv.db
 ├── images/
 │   ├── gauge_flood.png
 │   ├── gauge_normal.png
@@ -152,14 +165,62 @@ SmartRiverWaterLevel/
   - Updated `Main.java` to version **v0.9 (Day 9: Java Networking & Socket Programming)**
 - **Verification**: All 9 networking test assertions passed — SERVER_STATUS, LIST_STATIONS, BASIN_STATS, GET_ALERTS, GET_LEVEL, unknown-command ERROR, and 3-concurrent-client multi-connection test
 
+### Day 10: JDBC Database Connectivity & Relational Data Layer
+- Implemented complete **JDBC Architecture & Relational Persistence Layer** (`src/dao/jdbc/`):
+  - `DatabaseConnectionManager.java`: Singleton managing connection pooling, schema initialization (DDL `CREATE TABLE IF NOT EXISTS`), diagnostic metadata extraction, and arbitrary SQL query execution with formatted tabular printing
+  - `RiverJdbcDriver.java`: Pure-Java relational engine and mock JDBC driver (`java.sql.Driver`, `Connection`, `Statement`, `PreparedStatement`, `ResultSet`, `DatabaseMetaData`, `ResultSetMetaData`) ensuring zero external JAR dependencies
+  - `StationJdbcDAO.java`: Relational DAO implementing `StationDAO` using parameterized `PreparedStatement` queries (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) and `ResultSet` mapping
+  - `WaterLevelRecordJdbcDAO.java`: Relational DAO implementing `WaterLevelRecordDAO` with indexed station lookups, date sorting, and alert filtration
+  - `TestJdbc.java`: Comprehensive automated test suite verifying driver registration, connection acquisition, DDL execution, prepared statement inserts, and result set traversal
+- **Key Java Database Concepts Demonstrated (Syllabus UNIT V)**:
+  - `DriverManager.getConnection()` and JDBC URL connection lifecycle
+  - `Statement` vs. `PreparedStatement` parameterized queries preventing SQL injection
+  - `ResultSet` scrolling, row cursor navigation, and column metadata extraction
+  - Relational schema modeling (`stations` table and `readings` table with foreign key relations)
+  - Seamless DAO strategy switching between CSV File DAO and Relational JDBC DAO via `switchStorageEngine()`
+- **Interactive Console Integration**:
+  - Added **Menu Option 11: 🗄️ JDBC Database Connectivity & Relational SQL Console (UNIT V)** with diagnostics, schema DDL, row inspection, interactive SQL console, data migration, and storage engine switcher
+  - Updated `Main.java` to version **v0.10 (Day 10: JDBC Database Connectivity & Relational Persistence)**
+
+### Day 11: Java Swing Graphical User Interface & Real-Time Monitoring Dashboard
+- Designed and built a desktop application using standard Java Desktop APIs (`javax.swing.*`, `java.awt.*`) (`src/gui/`):
+  - `RiverGaugeVisualizerPanel.java`: Custom `JPanel` with overridden `paintComponent(Graphics g)` and `Graphics2D` rendering:
+    - Metric staff gauge with graduated tick markings (0.0m to 25.0m) and color-coded alert zones
+    - Dynamic sinusoidal water surface animation with translucent gradients and physical waterline indicator
+    - Real-time numerical level pill (Normal / Warning / Critical) and interactive level manipulation
+  - `RiverMonitoringGUI.java`: Multi-tabbed monitoring dashboard (`JFrame`) featuring 5 feature tabs:
+    - **Tab 1: Basin Overview & Station Grid** — Summary metric cards, filterable `JTable` with custom status cell renderers, and new station registration dialog
+    - **Tab 2: Interactive River Gauge Visualizer** — Embedded `RiverGaugeVisualizerPanel`, station selector dropdown, danger thresholds, and test water level slider
+    - **Tab 3: Computer Vision & Gauge Image Analysis** — Gauge image preview, file chooser (`JFileChooser`), and one-click execution of `WaterLevelImageProcessor` with waterline overlay and detection confidence
+    - **Tab 4: Real-Time IoT Telemetry & Concurrency Monitor** — Real-time sensor thread controls (Start/Stop), flash flood surge injection (+4.5m), worker thread diagnostic table, and live event log updated thread-safely via `SwingUtilities.invokeLater()`
+    - **Tab 5: Relational JDBC SQL Console** — Dynamic storage engine toggle (CSV File vs. Relational JDBC), quick queries, and tabular `ResultSet` display
+  - `TestGUI.java`: Headless-safe verification test suite validating environment detection, 2D offscreen `BufferedImage` rendering, GUI data binding, `SensorEventListener` telemetry dispatch, and JDBC querying
+- **Key Java Desktop & Event-Driven Concepts Demonstrated (Syllabus UNIT V)**:
+  - Swing component hierarchy (`JFrame`, `JTabbedPane`, `JSplitPane`, `JTable`, `JProgressBar`, `JSlider`, `JMenuBar`)
+  - Layout managers (`BorderLayout`, `GridLayout`, `FlowLayout`, `BoxLayout`, `EmptyBorder`)
+  - Custom 2D graphics rendering (`Graphics2D`, `RenderingHints.KEY_ANTIALIASING`, `GradientPaint`, `FontMetrics`)
+  - Multi-threaded Event Dispatch Thread (EDT) safety using `SwingUtilities.invokeLater()`
+  - Observer design pattern (`SensorEventListener`) for real-time telemetry updates from background worker threads
+- **Interactive Console Integration**:
+  - Added **Menu Option 12: 🖥️ Launch Java Swing GUI Dashboard (Event-Driven Desktop Application)** with options to launch the desktop application, run automated GUI tests, or inspect component hierarchy
+  - Updated `Main.java` to version **v0.11 (Day 11: Java Swing GUI & Event-Driven Monitoring Dashboard)**
+
 ---
 
 ## 💻 How to Compile and Run:
 ```bash
-# Compile all source files into bin/
-javac -d bin src/model/*.java src/exception/*.java src/imageprocessing/*.java src/dao/*.java src/service/*.java src/simulation/*.java src/network/*.java src/main/Main.java
+# Compile all source packages into bin/
+javac -d bin src/model/*.java src/exception/*.java src/imageprocessing/*.java src/dao/*.java src/dao/jdbc/*.java src/service/*.java src/simulation/*.java src/network/*.java src/gui/*.java src/main/Main.java
 
-# Run the application
+# Run interactive console application
 java -cp bin main.Main
+
+# Run Desktop Swing GUI application directly
+java -cp bin gui.RiverMonitoringGUI
+
+# Run automated verification test suites
+java -cp bin gui.TestGUI
+java -cp bin dao.jdbc.TestJdbc
+java -cp bin network.TestNetworking
 ```
 

@@ -24,11 +24,13 @@ import network.MonitoringClient;
 import dao.jdbc.DatabaseConnectionManager;
 import dao.jdbc.StationJdbcDAO;
 import dao.jdbc.WaterLevelRecordJdbcDAO;
+import gui.RiverMonitoringGUI;
+import gui.TestGUI;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 9: Java Networking & Socket Programming — TCP Client-Server River Monitoring
- * Syllabus Unit: UNIT III, IV & V - Multithreading, Thread Synchronization, Networking, File Persistence
+ * Day 11: Java Swing Graphical User Interface & Real-Time Monitoring Dashboard
+ * Syllabus Unit: UNIT III, IV & V - Multithreading, Networking, Relational JDBC, Swing GUI & Event-Driven Architecture
  */
 public class Main {
 
@@ -50,7 +52,7 @@ public class Main {
 
         while (running) {
             displayMenu();
-            System.out.print("Enter your choice (1-12): ");
+            System.out.print("Enter your choice (1-14): ");
 
             if (scanner.hasNextInt()) {
                 int choice = scanner.nextInt();
@@ -92,9 +94,12 @@ public class Main {
                         manageJdbcDatabase(scanner);
                         break;
                     case 12:
-                        displaySystemStatus();
+                        launchSwingGuiDashboard(scanner);
                         break;
                     case 13:
+                        displaySystemStatus();
+                        break;
+                    case 14:
                         System.out.println("Stopping background sensor threads and network server...");
                         simulationManager.stopSimulation();
                         if (networkServer.isRunning()) networkServer.stopServer();
@@ -102,7 +107,7 @@ public class Main {
                         running = false;
                         break;
                     default:
-                        System.out.println("Invalid option! Please enter a number between 1 and 13.");
+                        System.out.println("Invalid option! Please enter a number between 1 and 14.");
                 }
             } else {
                 System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical menu option.");
@@ -122,7 +127,7 @@ public class Main {
         System.out.println("   SMART RIVER WATER LEVEL MONITORING & DATA COLLECTION     ");
         System.out.println("               (Using Image Processing)                     ");
         System.out.println("============================================================");
-        System.out.println("Academic Prototype - Core Java Console Edition (Day 10: JDBC Database Connectivity & Relational Persistence)\n");
+        System.out.println("Academic Prototype - Core Java Console Edition (Day 11: Java Swing GUI & Event-Driven Monitoring Dashboard)\n");
     }
 
     private static void displayMenu() {
@@ -138,8 +143,9 @@ public class Main {
         System.out.println("9. ⚡ Real-Time Multithreaded Sensor & River Simulation (IoT Telemetry)");
         System.out.println("10. 🌐 TCP Networking & Remote Monitoring Server (Socket Programming)");
         System.out.println("11. 🗄️ JDBC Database Connectivity & Relational SQL Console (UNIT V)");
-        System.out.println("12. System Architecture & Status");
-        System.out.println("13. Exit");
+        System.out.println("12. 🖥️ Launch Java Swing GUI Dashboard (Event-Driven Desktop Application)");
+        System.out.println("13. System Architecture & Status");
+        System.out.println("14. Exit");
     }
 
     private static void displayAllStations() {
@@ -947,10 +953,77 @@ public class Main {
         }
     }
 
+    private static void launchSwingGuiDashboard(Scanner scanner) {
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n====== 🖥️ JAVA SWING GUI DASHBOARD & VISUALIZER (UNIT V) ======");
+            System.out.println("Headless Mode Detected : " + java.awt.GraphicsEnvironment.isHeadless());
+            System.out.println("Active Stations Bound  : " + monitoringService.getTotalStationsCount());
+            System.out.println("Simulation Engine State: " + (simulationManager.isRunning() ? "RUNNING" : "STANDBY"));
+            System.out.println("Active DAO Persistence : " + monitoringService.getStationDAO().getStorageSource());
+            System.out.println("------------------------------------------------------------------");
+            System.out.println("1. Launch Full Java Swing Desktop GUI Application (JFrame)");
+            System.out.println("2. Run Automated GUI Verification Suite (Headless Safe)");
+            System.out.println("3. Inspect Swing Component Architecture & Event Hierarchy");
+            System.out.println("4. Return to Main Menu");
+            System.out.print("Select an option (1-4): ");
+
+            if (scanner.hasNextInt()) {
+                int choice = scanner.nextInt();
+                scanner.nextLine();
+                switch (choice) {
+                    case 1:
+                        if (java.awt.GraphicsEnvironment.isHeadless()) {
+                            System.out.println("\n[WARNING] GraphicsEnvironment is currently HEADLESS. Desktop window cannot be displayed in non-GUI terminal.");
+                        } else {
+                            System.out.println("\n[LAUNCHING] Initializing Java Swing GUI on Event Dispatch Thread (EDT)...");
+                            javax.swing.SwingUtilities.invokeLater(() -> {
+                                RiverMonitoringGUI guiWindow = new RiverMonitoringGUI(monitoringService, simulationManager);
+                                guiWindow.setVisible(true);
+                            });
+                            System.out.println("[SUCCESS] RiverMonitoringGUI launched! Check your desktop/taskbar for the window.");
+                        }
+                        break;
+                    case 2:
+                        System.out.println("\nRunning Day 11 automated GUI verification suite...");
+                        TestGUI.main(new String[0]);
+                        break;
+                    case 3:
+                        displayGuiArchitectureDetails();
+                        break;
+                    case 4:
+                        back = true;
+                        break;
+                    default:
+                        System.out.println("Invalid option! Please enter a number between 1 and 4.");
+                }
+            } else {
+                System.out.println("[INPUT ERROR] Please enter a valid numerical choice.");
+                scanner.nextLine();
+            }
+        }
+    }
+
+    private static void displayGuiArchitectureDetails() {
+        System.out.println("\n================ SWING GUI ARCHITECTURE & EVENT HIERARCHY ================");
+        System.out.println("• Main Container       : javax.swing.JFrame (RiverMonitoringGUI)");
+        System.out.println("• Navigation Component : javax.swing.JTabbedPane (5 Integrated Feature Tabs)");
+        System.out.println("  ├─ Tab 1: Basin Overview & Station Grid (Metric Cards, Filterable JTable, Add Station Dialog)");
+        System.out.println("  ├─ Tab 2: River Gauge Visualizer (RiverGaugeVisualizerPanel with Graphics2D Canvas)");
+        System.out.println("  ├─ Tab 3: Gauge Image CV Analysis (JFileChooser, Waterline Overlay, Edge Detection Logs)");
+        System.out.println("  ├─ Tab 4: IoT Telemetry & Concurrency (Thread Diagnostic Table, Surge Injection, Event Log)");
+        System.out.println("  └─ Tab 5: Relational JDBC SQL Console (Dynamic CSV/JDBC Engine Switcher, Query Runner)");
+        System.out.println("• Custom 2D Rendering  : RiverGaugeVisualizerPanel (paintComponent, Metric Staff Ticks, Translucent Waves)");
+        System.out.println("• Concurrency Handling : SwingUtilities.invokeLater for thread-safe UI updates from worker threads");
+        System.out.println("• Observer Interface   : SensorEventListener (onReadingReceived, onAlertTriggered, onSimulationStatusChanged)");
+        System.out.println("============================================================================");
+    }
+
     private static void displaySystemStatus() {
         System.out.println("================ SYSTEM ARCHITECTURE & STATUS ================");
-        System.out.println("System Version : v0.10 (Day 10: JDBC Database Connectivity & Relational Persistence)");
-        System.out.println("Architecture   : Layered (Model -> DAO -> Service -> Simulation -> ImageProcessing -> Network -> JDBC -> UI)");
+        System.out.println("System Version : v0.11 (Day 11: Java Swing GUI & Event-Driven Monitoring Dashboard)");
+        System.out.println("Architecture   : Layered (Model -> DAO -> Service -> Simulation -> ImageProcessing -> Network -> JDBC -> Swing GUI)");
+        System.out.println("GUI Subsystem  : Active (JFrame, JTabbedPane, JTable, Graphics2D Custom Canvas, SensorEventListener)");
         System.out.println("Multithreading : Active (Dedicated Worker Threads per Station implementing Runnable)");
         System.out.println("Simulation Mgr : " + (simulationManager.isRunning() ? "🟢 Running (" + simulationManager.getSimulators().size() + " worker threads)" : "⚪ Idle / Standby"));
         System.out.println("Network Server : " + (networkServer.isRunning() ?
