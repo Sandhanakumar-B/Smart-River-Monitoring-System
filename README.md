@@ -205,6 +205,18 @@ SmartRiverWaterLevel/
   - Added **Menu Option 12: 🖥️ Launch Java Swing GUI Dashboard (Event-Driven Desktop Application)** with options to launch the desktop application, run automated GUI tests, or inspect component hierarchy
   - Updated `Main.java` to version **v0.11 (Day 11: Java Swing GUI & Event-Driven Monitoring Dashboard)**
 
+### Day 12: Advanced Data Analytics & Reporting (Java 8 Streams & Lambdas)
+- Introduced Java 8 functional programming paradigms (Streams API, Lambdas, Method References) to replace legacy loops.
+- Created `RiverAnalyticsService.java` for advanced aggregations:
+  - `findHighestRecordedLevel()` using `Optional` and `max()`.
+  - `getTopNHighestReadings(int n)` using `sorted()` and `limit()`.
+  - `getAverageWaterLevelByStation()` using `Collectors.groupingBy()` and `Collectors.averagingDouble()`.
+  - `getStationsWithCriticalAlerts()` using `filter()`, `map()`, and `distinct()`.
+- Refactored `RiverMonitoringService.java` to use Stream API for filtering and averaging.
+- Added headless testing suite `TestAnalytics.java` to verify functional analytics pipelines.
+- Integrated **Menu Option 13** in `Main.java` to print a comprehensive Day 12 Analytics Report.
+- Updated `Main.java` to version **v0.12 (Day 12: Advanced Data Analytics & Reporting)**
+
 ---
 
 ## 💻 How to Compile and Run:

@@ -26,6 +26,7 @@ import dao.jdbc.StationJdbcDAO;
 import dao.jdbc.WaterLevelRecordJdbcDAO;
 import gui.RiverMonitoringGUI;
 import gui.TestGUI;
+import service.RiverAnalyticsService;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
@@ -52,7 +53,7 @@ public class Main {
 
         while (running) {
             displayMenu();
-            System.out.print("Enter your choice (1-14): ");
+            System.out.print("Enter your choice (1-15): ");
 
             if (scanner.hasNextInt()) {
                 int choice = scanner.nextInt();
@@ -97,9 +98,12 @@ public class Main {
                         launchSwingGuiDashboard(scanner);
                         break;
                     case 13:
-                        displaySystemStatus();
+                        displayDay12Analytics();
                         break;
                     case 14:
+                        displaySystemStatus();
+                        break;
+                    case 15:
                         System.out.println("Stopping background sensor threads and network server...");
                         simulationManager.stopSimulation();
                         if (networkServer.isRunning()) networkServer.stopServer();
@@ -107,7 +111,7 @@ public class Main {
                         running = false;
                         break;
                     default:
-                        System.out.println("Invalid option! Please enter a number between 1 and 14.");
+                        System.out.println("Invalid option! Please enter a number between 1 and 15.");
                 }
             } else {
                 System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical menu option.");
@@ -144,8 +148,9 @@ public class Main {
         System.out.println("10. 🌐 TCP Networking & Remote Monitoring Server (Socket Programming)");
         System.out.println("11. 🗄️ JDBC Database Connectivity & Relational SQL Console (UNIT V)");
         System.out.println("12. 🖥️ Launch Java Swing GUI Dashboard (Event-Driven Desktop Application)");
-        System.out.println("13. System Architecture & Status");
-        System.out.println("14. Exit");
+        System.out.println("13. 📊 Day 12: Advanced Data Analytics & Reporting (Java 8 Streams)");
+        System.out.println("14. System Architecture & Status");
+        System.out.println("15. Exit");
     }
 
     private static void displayAllStations() {
@@ -1017,6 +1022,12 @@ public class Main {
         System.out.println("• Concurrency Handling : SwingUtilities.invokeLater for thread-safe UI updates from worker threads");
         System.out.println("• Observer Interface   : SensorEventListener (onReadingReceived, onAlertTriggered, onSimulationStatusChanged)");
         System.out.println("============================================================================");
+    }
+
+    private static void displayDay12Analytics() {
+        System.out.println("\nRunning Day 12 Analytics (Java 8 Streams)...");
+        RiverAnalyticsService analyticsService = new RiverAnalyticsService(monitoringService);
+        System.out.println(analyticsService.generateAnalyticsReport());
     }
 
     private static void displaySystemStatus() {

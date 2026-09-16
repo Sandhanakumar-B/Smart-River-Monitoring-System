@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import model.RiverStation;
 import model.WaterLevelRecord;
 
@@ -130,12 +131,10 @@ public class RiverMonitoringService {
         if (stationId == null) {
             return null;
         }
-        for (RiverStation station : this.stations) {
-            if (station.getStationId().equalsIgnoreCase(stationId.trim())) {
-                return station;
-            }
-        }
-        return null;
+        return this.stations.stream()
+                .filter(station -> station.getStationId().equalsIgnoreCase(stationId.trim()))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -187,43 +186,29 @@ public class RiverMonitoringService {
      * Filters and returns only readings that triggered critical flood warnings
      */
     public List<WaterLevelRecord> getCriticalAlertRecords() {
-        List<WaterLevelRecord> alerts = new ArrayList<>();
-        for (WaterLevelRecord record : this.records) {
-            if (record.getAlertStatus().startsWith("CRITICAL") || record.getAlertStatus().startsWith("WARNING")) {
-                alerts.add(record);
-            }
-        }
-        return alerts;
+        return this.records.stream()
+                .filter(record -> record.getAlertStatus().startsWith("CRITICAL") || record.getAlertStatus().startsWith("WARNING"))
+                .collect(Collectors.toList());
     }
 
     /**
      * Computes the mathematical average of all recorded water levels
      */
     public double getAverageWaterLevel() {
-        if (this.records.isEmpty()) {
-            return 0.0;
-        }
-        double sum = 0.0;
-        for (WaterLevelRecord record : this.records) {
-            sum += record.getWaterLevelMeters();
-        }
-        return sum / this.records.size();
+        return this.records.stream()
+                .mapToDouble(WaterLevelRecord::getWaterLevelMeters)
+                .average()
+                .orElse(0.0);
     }
 
     /**
      * Finds the maximum water level recorded so far
      */
     public double getMaxRecordedWaterLevel() {
-        if (this.records.isEmpty()) {
-            return 0.0;
-        }
-        double max = this.records.get(0).getWaterLevelMeters();
-        for (WaterLevelRecord record : this.records) {
-            if (record.getWaterLevelMeters() > max) {
-                max = record.getWaterLevelMeters();
-            }
-        }
-        return max;
+        return this.records.stream()
+                .mapToDouble(WaterLevelRecord::getWaterLevelMeters)
+                .max()
+                .orElse(0.0);
     }
 
     public int getTotalStationsCount() {
