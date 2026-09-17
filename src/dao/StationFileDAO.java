@@ -9,12 +9,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import model.RiverStation;
+import org.springframework.stereotype.Repository;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
  * Day 7: CSV File-based Implementation of StationDAO
  * Syllabus Unit: UNIT III & UNIT IV - Java File I/O, Streams, Exception Handling with Resources
  */
+@Repository
 public class StationFileDAO implements StationDAO {
 
     public static final String DEFAULT_FILE_PATH = "data/stations.csv";

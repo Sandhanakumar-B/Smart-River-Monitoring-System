@@ -17,12 +17,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import model.RiverStation;
 import model.WaterLevelRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
  * Day 8: Service Layer with Concurrent Multithreading & Thread-Safe Collections
  * Syllabus Unit: UNIT III, IV & V - Thread Safety, CopyOnWriteArrayList, DAO Pattern, File I/O
  */
+@Service
 public class RiverMonitoringService {
 
     public static final double MIN_PERMISSIBLE_LEVEL = 0.0;
@@ -35,15 +38,18 @@ public class RiverMonitoringService {
     private final WaterLevelImageProcessor imageProcessor;
 
     /**
-     * Default constructor initializing standard File DAOs (data/stations.csv & data/readings.csv)
+     * Default constructor initializing standard File DAOs (data/stations.csv & data/readings.csv).
+     * Used by legacy console / GUI / test code that calls new RiverMonitoringService().
      */
     public RiverMonitoringService() {
         this(new StationFileDAO(), new WaterLevelRecordFileDAO());
     }
 
     /**
-     * Dependency injection constructor allowing custom or mock DAOs
+     * Dependency injection constructor allowing custom or mock DAOs.
+     * Picked up by Spring @Autowired when both DAO beans are registered.
      */
+    @Autowired
     public RiverMonitoringService(StationDAO stationDAO, WaterLevelRecordDAO recordDAO) {
         this.stationDAO = stationDAO;
         this.recordDAO = recordDAO;

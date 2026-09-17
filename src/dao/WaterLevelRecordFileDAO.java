@@ -9,12 +9,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import model.WaterLevelRecord;
+import org.springframework.stereotype.Repository;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
  * Day 7: CSV File-based Implementation of WaterLevelRecordDAO
  * Syllabus Unit: UNIT III & UNIT IV - Java File I/O, Streams, CSV Serialization
  */
+@Repository
 public class WaterLevelRecordFileDAO implements WaterLevelRecordDAO {
 
     public static final String DEFAULT_FILE_PATH = "data/readings.csv";

@@ -219,6 +219,20 @@ SmartRiverWaterLevel/
 
 ---
 
+### Day 13: Spring Boot Migration & REST API Development
+- Integrated **Spring Boot 3.2.4** (`spring-boot-starter-web`) via `pom.xml` with embedded **Apache Tomcat** on port 8080
+- Created `SmartRiverApplication.java` — `@SpringBootApplication` entry point with `@ComponentScan` across all packages
+- Annotated `StationFileDAO` and `WaterLevelRecordFileDAO` with `@Repository` and `RiverMonitoringService` with `@Service` for Spring IoC container management
+- Implemented `RiverStationController.java` — `@RestController` exposing 3 JSON REST endpoints:
+  - `GET /api/stations` — Returns JSON array of all registered monitoring stations
+  - `GET /api/readings/{stationId}` — Returns historical water level records filtered by station ID
+  - `GET /api/stats` — Returns basin-wide analytics: total stations, readings, avg level, peak level, critical alerts count
+- Preserved backward compatibility: restored default no-arg `RiverMonitoringService()` constructor so all legacy `Main.java`, `TestGUI.java`, `TestNetworking.java`, `TestAnalytics.java` continue to compile
+- **Verification**: All 3 REST endpoints tested and returning valid JSON responses from live data
+- Run API server: `mvn spring-boot:run` → API live at `http://localhost:8080/api/`
+
+---
+
 ## 💻 How to Compile and Run:
 ```bash
 # Compile all source packages into bin/
