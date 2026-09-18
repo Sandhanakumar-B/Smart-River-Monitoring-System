@@ -233,6 +233,38 @@ SmartRiverWaterLevel/
 
 ---
 
+### Day 14: Spring Data JPA & H2 Embedded Database Integration
+- Integrated **Spring Data JPA** (`spring-boot-starter-data-jpa`) and **H2 embedded database** (`h2`) for full ORM persistence (`pom.xml` updated to v0.14.0-SNAPSHOT)
+- Created **JPA Entity classes** (`src/model/`):
+  - `RiverStationEntity.java`: `@Entity @Table(name="jpa_stations")` mapping domain `RiverStation` to H2 relational table with `@Id`, `@Column` annotations
+  - `WaterLevelRecordEntity.java`: `@Entity @Table(name="jpa_readings")` with composite stationLocation field and alertStatus column
+  - Both entities include static factory methods (`fromDomain()` / `toDomain()`) maintaining clean separation between domain and persistence layers
+- Created **Spring Data JPA Repository interfaces** (`src/dao/jpa/`):
+  - `RiverStationJpaRepository`: `extends JpaRepository<RiverStationEntity, String>` with `existsByStationId()` derived query
+  - `WaterLevelRecordJpaRepository`: derived query methods — `findByStationLocationContaining()`, `findByAlertStatusStartingWith()`, `findByRiverName()`
+  - All CRUD operations auto-implemented by Spring Data — zero SQL/JDBC code
+- Created **JPA DAO Adapter classes** (`src/dao/jpa/`):
+  - `StationJpaDAO`: implements `StationDAO` interface using `RiverStationJpaRepository` (Adapter Pattern + Dependency Injection)
+  - `WaterLevelRecordJpaDAO`: implements `WaterLevelRecordDAO` + extra `getCriticalAndWarningRecords()` and `getRecordsByStation()` methods
+- Added `src/main/resources/application.properties`: H2 file-based datasource (`jdbc:h2:file:./data/riverdb_jpa`), Hibernate `ddl-auto=update`, H2 web console at `/h2-console`
+- **Expanded REST API** in `RiverStationController.java` with Day 14 endpoints:
+  - `POST /api/stations` — Register station via JSON `@RequestBody` (HTTP 201 Created)
+  - `POST /api/readings` — Record measurement via `@RequestParam` (HTTP 201 Created)
+  - `GET /api/readings/alerts` — Returns CRITICAL+WARNING records using JPA derived query
+  - `DELETE /api/stations/{stationId}` — Demonstrates `@DeleteMapping` and HTTP 204 No Content
+- **Key Java/Spring Concepts Demonstrated (Syllabus UNIT V)**:
+  - `@Entity`, `@Table`, `@Id`, `@Column` ORM annotations for relational mapping
+  - `JpaRepository<T,ID>` interface auto-implementing all CRUD via Spring Data
+  - JPQL Derived Query Method naming convention (no SQL required)
+  - Hibernate `ddl-auto=update` for automatic schema creation/migration
+  - H2 embedded database: zero external server setup, browser SQL console
+  - Adapter Design Pattern bridging JPA repositories to existing DAO interfaces
+- Created `TestJpa.java` — Automated CRUD lifecycle verification (save, findAll, findById, derived queries, alert filtering)
+- Added **Menu Option 15: 🗄️ Day 14: Spring Data JPA & H2 Database** reference panel
+- Updated `Main.java` to version **v0.14 (Day 14: Spring Data JPA & H2 Database Integration)**
+
+---
+
 ## 💻 How to Compile and Run:
 ```bash
 # Compile all source packages into bin/

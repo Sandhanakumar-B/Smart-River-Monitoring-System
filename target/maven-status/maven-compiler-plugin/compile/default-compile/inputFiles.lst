@@ -5,6 +5,7 @@ C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\model\RiverStati
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\controller\RiverStationController.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\dao\jdbc\StationJdbcDAO.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\simulation\SensorEvent.java
+C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\dao\jpa\WaterLevelRecordJpaDAO.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\simulation\SensorEventListener.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\dao\jdbc\RiverJdbcDriver.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\imageprocessing\WaterLevelImageProcessor.java
@@ -19,13 +20,19 @@ C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\imageprocessing\
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\network\MonitoringProtocol.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\gui\RiverMonitoringGUI.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\imageprocessing\GaugeProcessingResult.java
+C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\dao\jpa\StationJpaDAO.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\exception\StationNotFoundException.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\service\RiverMonitoringService.java
+C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\dao\jpa\TestJpa.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\network\TestNetworking.java
+C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\dao\jpa\WaterLevelRecordJpaRepository.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\exception\DuplicateStationException.java
+C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\dao\jpa\RiverStationJpaRepository.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\model\WaterLevelRecord.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\exception\InvalidWaterLevelException.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\main\SmartRiverApplication.java
+C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\model\RiverStationEntity.java
+C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\model\WaterLevelRecordEntity.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\simulation\StationSensorSimulator.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\service\TestAnalytics.java
 C:\Users\Asus\OneDrive\Desktop\Smart River Mangement System\src\gui\TestGUI.java

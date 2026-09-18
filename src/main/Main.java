@@ -30,8 +30,8 @@ import service.RiverAnalyticsService;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 11: Java Swing Graphical User Interface & Real-Time Monitoring Dashboard
- * Syllabus Unit: UNIT III, IV & V - Multithreading, Networking, Relational JDBC, Swing GUI & Event-Driven Architecture
+ * Day 14: Spring Data JPA & H2 Database Integration
+ * Syllabus Unit: UNIT V - JPA Entity Mapping, Spring Data Repositories, H2 Embedded Database, ORM
  */
 public class Main {
 
@@ -53,7 +53,7 @@ public class Main {
 
         while (running) {
             displayMenu();
-            System.out.print("Enter your choice (1-15): ");
+            System.out.print("Enter your choice (1-16): ");
 
             if (scanner.hasNextInt()) {
                 int choice = scanner.nextInt();
@@ -104,6 +104,9 @@ public class Main {
                         displaySystemStatus();
                         break;
                     case 15:
+                        displayDay14JpaInfo();
+                        break;
+                    case 16:
                         System.out.println("Stopping background sensor threads and network server...");
                         simulationManager.stopSimulation();
                         if (networkServer.isRunning()) networkServer.stopServer();
@@ -111,7 +114,7 @@ public class Main {
                         running = false;
                         break;
                     default:
-                        System.out.println("Invalid option! Please enter a number between 1 and 15.");
+                        System.out.println("Invalid option! Please enter a number between 1 and 16.");
                 }
             } else {
                 System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical menu option.");
@@ -131,7 +134,7 @@ public class Main {
         System.out.println("   SMART RIVER WATER LEVEL MONITORING & DATA COLLECTION     ");
         System.out.println("               (Using Image Processing)                     ");
         System.out.println("============================================================");
-        System.out.println("Academic Prototype - Core Java Console Edition (Day 11: Java Swing GUI & Event-Driven Monitoring Dashboard)\n");
+        System.out.println("Academic Prototype - Core Java Console Edition (Day 14: Spring Data JPA & H2 Database Integration)\n");
     }
 
     private static void displayMenu() {
@@ -150,7 +153,8 @@ public class Main {
         System.out.println("12. 🖥️ Launch Java Swing GUI Dashboard (Event-Driven Desktop Application)");
         System.out.println("13. 📊 Day 12: Advanced Data Analytics & Reporting (Java 8 Streams)");
         System.out.println("14. System Architecture & Status");
-        System.out.println("15. Exit");
+        System.out.println("15. 🗄️ Day 14: Spring Data JPA & H2 Database - ORM Reference");
+        System.out.println("16. Exit");
     }
 
     private static void displayAllStations() {
@@ -1032,8 +1036,8 @@ public class Main {
 
     private static void displaySystemStatus() {
         System.out.println("================ SYSTEM ARCHITECTURE & STATUS ================");
-        System.out.println("System Version : v0.11 (Day 11: Java Swing GUI & Event-Driven Monitoring Dashboard)");
-        System.out.println("Architecture   : Layered (Model -> DAO -> Service -> Simulation -> ImageProcessing -> Network -> JDBC -> Swing GUI)");
+        System.out.println("System Version : v0.14 (Day 14: Spring Data JPA & H2 Database Integration)");
+        System.out.println("Architecture   : Layered (Model -> DAO -> Service -> Simulation -> ImageProcessing -> Network -> JDBC -> JPA -> Swing GUI -> Spring REST)");
         System.out.println("GUI Subsystem  : Active (JFrame, JTabbedPane, JTable, Graphics2D Custom Canvas, SensorEventListener)");
         System.out.println("Multithreading : Active (Dedicated Worker Threads per Station implementing Runnable)");
         System.out.println("Simulation Mgr : " + (simulationManager.isRunning() ? "🟢 Running (" + simulationManager.getSimulators().size() + " worker threads)" : "⚪ Idle / Standby"));
@@ -1043,12 +1047,50 @@ public class Main {
             : "⚪ Offline"));
         System.out.println("Thread Safety  : CopyOnWriteArrayList + Synchronized Service & DAO Methods");
         System.out.println("Active DAO     : " + monitoringService.getStationDAO().getStorageSource());
-        System.out.println("JDBC Database  : " + DatabaseConnectionManager.getInstance().getJdbcUrl() + " (Driver: RiverJdbcDriver)");
-        System.out.println("Image Engine   : Region of Interest (ROI) Edge Detection & Pixel Calibration");
-        System.out.println("Exceptions     : Checked Domain Exceptions (InvalidWaterLevel, StationNotFound, DuplicateStation)");
-        System.out.println("Active Station : " + (activeStation != null ? activeStation.getStationName() : "None"));
+        System.out.println(\"JDBC Database  : \" + DatabaseConnectionManager.getInstance().getJdbcUrl() + \" (Driver: RiverJdbcDriver)\");
+        System.out.println(\"Image Engine   : Region of Interest (ROI) Edge Detection & Pixel Calibration\");
+        System.out.println(\"Exceptions     : Checked Domain Exceptions (InvalidWaterLevel, StationNotFound, DuplicateStation)\");
+        System.out.println(\"JPA / H2       : Spring Data JPA + H2 Embedded DB (jpa_stations, jpa_readings tables)\");
+        System.out.println(\"Active Station : \" + (activeStation != null ? activeStation.getStationName() : \"None\"));
         System.out.println("Total Stations : " + monitoringService.getTotalStationsCount());
         System.out.println("Total Records  : " + monitoringService.getTotalReadingsCount());
         System.out.println("==============================================================");
+    }
+
+    private static void displayDay14JpaInfo() {
+        System.out.println("================ Day 14: SPRING DATA JPA & H2 DATABASE ================");
+        System.out.println("Syllabus: UNIT V - ORM, JPA Entity Mapping, Spring Data Repositories, H2");
+        System.out.println();
+        System.out.println("KEY JAVA / SPRING CONCEPTS DEMONSTRATED:");
+        System.out.println("  @Entity / @Table      : Maps domain class to relational table in H2");
+        System.out.println("  @Id / @Column         : Marks primary key and column constraints");
+        System.out.println("  JpaRepository<T,ID>   : Auto-generated CRUD (save/findAll/deleteById)");
+        System.out.println("  Derived Query Methods : findByRiverName(), findByAlertStatusStartingWith()");
+        System.out.println("  Adapter Pattern       : StationJpaDAO / WaterLevelRecordJpaDAO bridge");
+        System.out.println("  spring.jpa.ddl-auto   : Hibernate auto creates/updates schema on startup");
+        System.out.println("  H2 Embedded Database  : Zero-setup file-based SQL DB (./data/riverdb_jpa)");
+        System.out.println();
+        System.out.println("NEW FILES (Day 14):");
+        System.out.println("  src/model/RiverStationEntity.java          - @Entity for jpa_stations");
+        System.out.println("  src/model/WaterLevelRecordEntity.java      - @Entity for jpa_readings");
+        System.out.println("  src/dao/jpa/RiverStationJpaRepository.java - extends JpaRepository");
+        System.out.println("  src/dao/jpa/WaterLevelRecordJpaRepository.java - derived query methods");
+        System.out.println("  src/dao/jpa/StationJpaDAO.java             - Adapter: JPA -> StationDAO");
+        System.out.println("  src/dao/jpa/WaterLevelRecordJpaDAO.java    - Adapter: JPA -> RecordDAO");
+        System.out.println("  src/dao/jpa/TestJpa.java                   - Automated CRUD test suite");
+        System.out.println("  src/main/resources/application.properties  - H2 + JPA config");
+        System.out.println();
+        System.out.println("REST API (New Day 14 Endpoints):");
+        System.out.println("  POST   /api/stations           - Register station via JSON body");
+        System.out.println("  POST   /api/readings           - Record measurement via query params");
+        System.out.println("  GET    /api/readings/alerts    - JPA-powered alert query");
+        System.out.println("  DELETE /api/stations/{id}      - Remove station (HTTP 204 No Content)");
+        System.out.println();
+        System.out.println("To run Spring REST API + H2 Console:");
+        System.out.println("  mvn spring-boot:run");
+        System.out.println("  H2 Console : http://localhost:8080/h2-console");
+        System.out.println("  JDBC URL   : jdbc:h2:file:./data/riverdb_jpa");
+        System.out.println("  API Base   : http://localhost:8080/api/stations");
+        System.out.println("==========================================================================");
     }
 }
