@@ -1047,11 +1047,11 @@ public class Main {
             : "⚪ Offline"));
         System.out.println("Thread Safety  : CopyOnWriteArrayList + Synchronized Service & DAO Methods");
         System.out.println("Active DAO     : " + monitoringService.getStationDAO().getStorageSource());
-        System.out.println(\"JDBC Database  : \" + DatabaseConnectionManager.getInstance().getJdbcUrl() + \" (Driver: RiverJdbcDriver)\");
-        System.out.println(\"Image Engine   : Region of Interest (ROI) Edge Detection & Pixel Calibration\");
-        System.out.println(\"Exceptions     : Checked Domain Exceptions (InvalidWaterLevel, StationNotFound, DuplicateStation)\");
-        System.out.println(\"JPA / H2       : Spring Data JPA + H2 Embedded DB (jpa_stations, jpa_readings tables)\");
-        System.out.println(\"Active Station : \" + (activeStation != null ? activeStation.getStationName() : \"None\"));
+        System.out.println("JDBC Database  : " + DatabaseConnectionManager.getInstance().getJdbcUrl() + " (Driver: RiverJdbcDriver)");
+        System.out.println("Image Engine   : Region of Interest (ROI) Edge Detection & Pixel Calibration");
+        System.out.println("Exceptions     : Checked Domain Exceptions (InvalidWaterLevel, StationNotFound, DuplicateStation)");
+        System.out.println("JPA / H2       : Spring Data JPA + H2 Embedded DB (jpa_stations, jpa_readings tables)");
+        System.out.println("Active Station : " + (activeStation != null ? activeStation.getStationName() : "None"));
         System.out.println("Total Stations : " + monitoringService.getTotalStationsCount());
         System.out.println("Total Records  : " + monitoringService.getTotalReadingsCount());
         System.out.println("==============================================================");
