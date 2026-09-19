@@ -10,9 +10,9 @@
     </parent>
     <groupId>com.smartriver</groupId>
     <artifactId>smartriver</artifactId>
-    <version>0.14.0-SNAPSHOT</version>
+    <version>0.15.0-SNAPSHOT</version>
     <name>Smart River Management System</name>
-    <description>Day 14: Spring Data JPA &amp; H2 Database Integration</description>
+    <description>Day 15: Modern Interactive Web Dashboard &amp; Single-Page Application</description>
     <properties>
         <java.version>17</java.version>
     </properties>

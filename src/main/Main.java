@@ -30,8 +30,8 @@ import service.RiverAnalyticsService;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 14: Spring Data JPA & H2 Database Integration
- * Syllabus Unit: UNIT V - JPA Entity Mapping, Spring Data Repositories, H2 Embedded Database, ORM
+ * Day 15: Modern Interactive Web Dashboard & Single-Page Application
+ * Syllabus Unit: UNIT V - Full-Stack Web Architecture, Spring Boot Static Serving & REST APIs
  */
 public class Main {
 
@@ -53,7 +53,7 @@ public class Main {
 
         while (running) {
             displayMenu();
-            System.out.print("Enter your choice (1-16): ");
+            System.out.print("Enter your choice (1-17): ");
 
             if (scanner.hasNextInt()) {
                 int choice = scanner.nextInt();
@@ -107,6 +107,9 @@ public class Main {
                         displayDay14JpaInfo();
                         break;
                     case 16:
+                        launchWebDashboardInfo();
+                        break;
+                    case 17:
                         System.out.println("Stopping background sensor threads and network server...");
                         simulationManager.stopSimulation();
                         if (networkServer.isRunning()) networkServer.stopServer();
@@ -114,7 +117,7 @@ public class Main {
                         running = false;
                         break;
                     default:
-                        System.out.println("Invalid option! Please enter a number between 1 and 16.");
+                        System.out.println("Invalid option! Please enter a number between 1 and 17.");
                 }
             } else {
                 System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical menu option.");
@@ -134,7 +137,7 @@ public class Main {
         System.out.println("   SMART RIVER WATER LEVEL MONITORING & DATA COLLECTION     ");
         System.out.println("               (Using Image Processing)                     ");
         System.out.println("============================================================");
-        System.out.println("Academic Prototype - Core Java Console Edition (Day 14: Spring Data JPA & H2 Database Integration)\n");
+        System.out.println("Academic Prototype - Core Java & Spring Boot (Day 15: Modern Interactive Web Dashboard)\n");
     }
 
     private static void displayMenu() {
@@ -154,7 +157,8 @@ public class Main {
         System.out.println("13. 📊 Day 12: Advanced Data Analytics & Reporting (Java 8 Streams)");
         System.out.println("14. System Architecture & Status");
         System.out.println("15. 🗄️ Day 14: Spring Data JPA & H2 Database - ORM Reference");
-        System.out.println("16. Exit");
+        System.out.println("16. 🌐 Day 15: Launch & Access Modern Web Dashboard (Single-Page App)");
+        System.out.println("17. Exit");
     }
 
     private static void displayAllStations() {
@@ -1091,6 +1095,40 @@ public class Main {
         System.out.println("  H2 Console : http://localhost:8080/h2-console");
         System.out.println("  JDBC URL   : jdbc:h2:file:./data/riverdb_jpa");
         System.out.println("  API Base   : http://localhost:8080/api/stations");
+        System.out.println("==========================================================================");
+    }
+
+    private static void launchWebDashboardInfo() {
+        System.out.println("================ DAY 15: MODERN INTERACTIVE WEB DASHBOARD ================");
+        System.out.println("Syllabus: UNIT V - Full-Stack Web Architecture, Spring Boot 3.2, Vanilla HTML5/CSS3/JS");
+        System.out.println();
+        System.out.println("LIVE WEB APPLICATION ACCESS:");
+        System.out.println("  Web Dashboard UI  : http://localhost:8080/");
+        System.out.println("  REST API Base     : http://localhost:8080/api/");
+        System.out.println("  H2 DB Web Console : http://localhost:8080/h2-console");
+        System.out.println();
+        System.out.println("KEY WEB DASHBOARD FEATURES:");
+        System.out.println("  • Real-Time Water Gauge   : HTML5 Canvas 2D animated fluid waterline & metric staff");
+        System.out.println("  • Basin Telemetry Feed    : Auto-refreshing live log with color-coded alerts");
+        System.out.println("  • Station Directory Grid  : Searchable station cards with instant gauge selector");
+        System.out.println("  • Modals & Forms          : Interactive station registration & manual reading entry");
+        System.out.println("  • Flood Surge Simulator   : Test flash flood cloudburst (+4.5m) with instant alerts");
+        System.out.println();
+        System.out.println("HOW TO LAUNCH THE WEB APPLICATION:");
+        System.out.println("  Run in terminal: mvn spring-boot:run");
+        System.out.println("  Then open your browser to: http://localhost:8080/");
+        System.out.println();
+        try {
+            if (java.awt.Desktop.isDesktopSupported() && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
+                System.out.println("Attempting to open default browser at http://localhost:8080/ ...");
+                java.awt.Desktop.getDesktop().browse(new java.net.URI("http://localhost:8080/"));
+                System.out.println("Browser opened successfully!");
+            } else {
+                System.out.println("Please open http://localhost:8080/ manually in your preferred browser.");
+            }
+        } catch (Exception e) {
+            System.out.println("Tip: Visit http://localhost:8080/ in your browser once the Spring server is running.");
+        }
         System.out.println("==========================================================================");
     }
 }

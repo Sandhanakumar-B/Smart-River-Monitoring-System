@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart River Monitoring System - Real-Time Hydrological Dashboard</title>
+  <meta name="description" content="Day 15: Modern Interactive Web Dashboard for River Water Level Monitoring, Telemetry Tracking, and Flood Alert Dispatch.">
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Dashboard Stylesheet -->
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+
+    <!-- 1. Top Navigation & Brand Header -->
+    <header class="dashboard-header" role="banner">
+      <div class="brand-wrapper">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">Smart River Telemetry</h1>
+          <div class="brand-tagline">
+            <span>Hydrological Basin Monitoring System</span>
+            <span class="version-pill">v0.15 &bull; Spring Boot 3.2</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="heartbeat-pill" id="systemHeartbeat" title="Spring Boot REST API Live Connection">
+          <span class="pulse-dot"></span>
+          <span>REST &amp; JPA LIVE</span>
+        </div>
+        <button class="btn btn-secondary" id="btnRefresh" title="Synchronize telemetry data from server">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          Sync
+        </button>
+        <button class="btn btn-secondary" id="btnOpenAddStation">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 4v16m8-8H4"></path>
+          </svg>
+          Add Station
+        </button>
+        <button class="btn btn-primary" id="btnOpenRecordReading">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          Record Reading
+        </button>
+        <button class="btn btn-danger" id="btnSurge" title="Simulate emergency flash flood cloudburst (+4.5m)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          Simulate Surge
+        </button>
+      </div>
+    </header>
+
+    <!-- 2. Dynamic Emergency Alert Banner (Shown on Flood Warning) -->
+    <div class="alert-banner" id="emergencyAlertBanner" role="alert">
+      <div class="alert-content">
+        <div class="alert-icon-wrap" aria-hidden="true">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+        <div class="alert-text">
+          <h4>EMERGENCY HYDROLOGICAL FLOOD WARNING</h4>
+          <p id="alertBannerText">River water level has exceeded safety margins. Automated warning alerts dispatched.</p>
+        </div>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="DashboardController.showToast('Basin emergency alert acknowledged.', 'warning')">
+        Acknowledge Alert
+      </button>
+    </div>
+
+    <!-- 3. Basin Key Performance Indicator (KPI) Summary Cards -->
+    <section class="kpi-grid" aria-label="Basin Overview Statistics">
+      <div class="kpi-card">
+        <div class="kpi-icon icon-cyan" aria-hidden="true">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Active Stations</span>
+          <span class="kpi-value" id="kpiTotalStations">--</span>
+          <span class="kpi-sub">Ganga River Basin</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon icon-blue" aria-hidden="true">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Total Readings</span>
+          <span class="kpi-value" id="kpiTotalReadings">--</span>
+          <span class="kpi-sub">JPA &amp; CSV Persistence</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon icon-emerald" aria-hidden="true">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Basin Average</span>
+          <span class="kpi-value" id="kpiAvgLevel">-- m</span>
+          <span class="kpi-sub">Nominal baseline</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon icon-amber" aria-hidden="true">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Peak Water Level</span>
+          <span class="kpi-value" id="kpiPeakLevel">-- m</span>
+          <span class="kpi-sub">Highest historical peak</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon icon-red" aria-hidden="true">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Active Alerts</span>
+          <span class="kpi-value" id="kpiAlertCount">--</span>
+          <span class="kpi-sub">Hazard threshold trips</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Main Split View: Gauge Visualizer + Telemetry Activity Feed -->
+    <main class="main-grid">
+
+      <!-- Left Column: Canvas 2D Physical River Staff Gauge -->
+      <section class="glass-panel" aria-label="Physical Staff Gauge Visualizer">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            Metric Staff Gauge Visualizer
+          </h2>
+          <span class="version-pill">Canvas 2D</span>
+        </div>
+
+        <div class="gauge-controls">
+          <label for="stationSelect" class="form-label">Select Active River Station</label>
+          <select id="stationSelect" class="form-select" aria-label="Select river station to visualize">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div class="gauge-canvas-wrap">
+          <canvas id="gaugeCanvas" aria-label="Interactive visual rendering of river staff gauge with dynamic waterline"></canvas>
+        </div>
+
+        <div class="gauge-stats-row">
+          <div class="gauge-stat-box">
+            <div class="gauge-stat-title">Normal Base</div>
+            <div class="gauge-stat-num" id="statNormalLevel">-- m</div>
+          </div>
+          <div class="gauge-stat-box">
+            <div class="gauge-stat-title">Danger Threshold</div>
+            <div class="gauge-stat-num" id="statDangerLevel" style="color: #ef4444;">-- m</div>
+          </div>
+          <div class="gauge-stat-box">
+            <div class="gauge-stat-title">Freeboard Margin</div>
+            <div class="gauge-stat-num" id="statFreeboardMargin">-- m</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Real-Time Telemetry & Alert Stream -->
+      <section class="glass-panel telemetry-feed" aria-label="Telemetry Activity Log">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Real-Time Basin Telemetry Feed
+          </h2>
+          <span class="version-pill">Live Stream</span>
+        </div>
+
+        <div class="feed-filter-bar">
+          <div class="filter-chips">
+            <button class="filter-chip active" data-filter="ALL">All Records</button>
+            <button class="filter-chip" data-filter="CRITICAL">Critical Alerts</button>
+            <button class="filter-chip" data-filter="WARNING">Warnings</button>
+            <button class="filter-chip" data-filter="NORMAL">Normal</button>
+          </div>
+          <span style="font-size: 0.75rem; color: var(--color-text-dim);">Auto-refreshes every 5s</span>
+        </div>
+
+        <div class="feed-list" id="telemetryList">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- 5. River Stations Directory Grid -->
+    <section class="stations-section" aria-label="River Stations Directory">
+      <div class="section-header-row">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">Monitoring Station Directory</h2>
+          <p style="font-size: 0.8rem; color: var(--color-text-muted);">Registered stations with geographical coordinates &amp; hydraulic limits</p>
+        </div>
+        <div class="search-box-wrap">
+          <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input type="text" id="searchStationInput" class="search-input" placeholder="Search station, ID or river..." aria-label="Search station">
+        </div>
+      </div>
+
+      <div class="station-cards-grid" id="stationsGrid">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Modal 1: Register Station Modal -->
+  <div class="modal-overlay" id="modalAddStation" role="dialog" aria-modal="true" aria-labelledby="modalAddStationTitle">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalAddStationTitle">Register River Monitoring Station</h3>
+        <button class="btn-close-modal" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="formAddStation">
+        <div class="form-group">
+          <label class="form-label" for="addStationId">Station Identifier (e.g. STN-PAT-05)</label>
+          <input type="text" id="addStationId" class="form-input" placeholder="STN-PAT-05" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="addStationName">Station Full Name</label>
+          <input type="text" id="addStationName" class="form-input" placeholder="Patna Gandhi Ghat Station" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="addRiverName">River Name</label>
+          <input type="text" id="addRiverName" class="form-input" placeholder="Ganga River" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="addNormalLevel">Normal Level (meters)</label>
+            <input type="number" id="addNormalLevel" class="form-input" step="0.1" min="0" max="50" placeholder="7.0" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="addDangerLevel">Danger Level (meters)</label>
+            <input type="number" id="addDangerLevel" class="form-input" step="0.1" min="0" max="50" placeholder="15.5" required>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary btn-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save to Database</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Record Water Level Reading -->
+  <div class="modal-overlay" id="modalRecordReading" role="dialog" aria-modal="true" aria-labelledby="modalRecordReadingTitle">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalRecordReadingTitle">Record Water Level Measurement</h3>
+        <button class="btn-close-modal" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="formRecordReading">
+        <div class="form-group">
+          <label class="form-label" for="recordStationSelect">Target River Station</label>
+          <select id="recordStationSelect" class="form-select" required>
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="recordWaterLevel">Observed Water Level (meters)</label>
+          <input type="number" id="recordWaterLevel" class="form-input" step="0.05" min="0" max="50" placeholder="e.g. 11.45" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary btn-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Measurement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Dashboard Application Logic -->
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -265,20 +265,70 @@ SmartRiverWaterLevel/
 
 ---
 
+### Day 15: Modern Interactive Web Dashboard & Single-Page Application (SPA)
+- Designed and built a modern, responsive Single-Page Web Dashboard served directly via Spring Boot (`src/main/resources/static/`):
+  - `index.html`: Semantic HTML5 dashboard featuring top brand navigation, live heartbeat status pill (`REST & JPA LIVE`), basin KPI metric cards, interactive split-view monitor, station explorer grid, and accessible modals
+  - `css/dashboard.css`: Rich dark oceanic design system (`#070B19`), glassmorphism cards (`backdrop-filter: blur(16px)`), subtle translucent borders, animated pulse glows, and responsive CSS grid/flexbox layouts
+  - `js/app.js`: Modular Vanilla JavaScript client with REST `fetch()` API wrapper, event handling, auto-refresh polling loop (5s interval), search filter, and floating toast notifications
+- **Interactive HTML5 Canvas 2D River Staff Gauge Visualizer**:
+  - Graduated metric measurement staff (0.0m to 25.0m) with major (5m) and minor (1m) tick marks
+  - Real-time animated sinusoidal fluid water surface with double harmonic waves and dynamic color transitions (Cyan Normal -> Amber Warning -> Crimson Flood)
+  - Color-coded dashed threshold reference lines for Normal Baseline and Critical Flood limits
+  - Floating illuminated numerical waterline pill indicating exact level in meters
+- **Basin Key Performance Indicators (KPI Cards)**:
+  - Active Stations Counter, Total Readings Recorded, Basin Average Water Level, Historical Peak Level, and Active Flood Alert Trips
+- **Telemetry Stream & Emergency Flood Alert System**:
+  - Live filterable activity stream (`ALL`, `CRITICAL`, `WARNING`, `NORMAL`)
+  - Dynamic emergency flood warning banner triggered automatically when water levels exceed safety margins
+- **Interactive Modals & Simulation Triggers**:
+  - **Register Station Modal**: Add new monitoring station persisted to JPA/H2 (`POST /api/stations`)
+  - **Record Measurement Modal**: Submit manual or physical reading (`POST /api/readings`)
+  - **Simulate Surge Action**: Injects an emergency flash flood cloudburst (+4.5m) (`POST /api/simulation/surge`) demonstrating real-time alert dispatch
+- **Console Application Integration**:
+  - Added **Menu Option 16: 🌐 Day 15: Launch & Access Modern Web Dashboard (Single-Page App)**
+  - Automatically attempts to open `http://localhost:8080/` in the default system browser via `java.awt.Desktop`
+- Updated `pom.xml` to version **v0.15.0-SNAPSHOT** and `Main.java` to version **v0.15**
+
+---
+
 ## 💻 How to Compile and Run:
+
+### 🌐 1. Launch Modern Web Dashboard & Spring Boot REST API (Recommended)
 ```bash
-# Compile all source packages into bin/
-javac -d bin src/model/*.java src/exception/*.java src/imageprocessing/*.java src/dao/*.java src/dao/jdbc/*.java src/service/*.java src/simulation/*.java src/network/*.java src/gui/*.java src/main/Main.java
+# Run Spring Boot application (serves Web UI + REST API + H2 Console)
+mvn spring-boot:run
 
-# Run interactive console application
-java -cp bin main.Main
+# Open Web Dashboard in your browser:
+# http://localhost:8080/
 
-# Run Desktop Swing GUI application directly
-java -cp bin gui.RiverMonitoringGUI
+# Access H2 Database Web Console:
+# http://localhost:8080/h2-console  (JDBC URL: jdbc:h2:file:./data/riverdb_jpa)
+```
 
-# Run automated verification test suites
-java -cp bin gui.TestGUI
-java -cp bin dao.jdbc.TestJdbc
-java -cp bin network.TestNetworking
+### ☕ 2. Run Interactive Console Application
+```bash
+# Compile and run via Maven
+mvn clean compile
+mvn exec:java -Dexec.mainClass="main.Main"
+
+# Or run Main directly from target/classes
+java -cp "target/classes;target/dependency/*" main.Main
+```
+
+### 🖥️ 3. Run Java Swing Desktop GUI Dashboard
+```bash
+# Launch Desktop GUI directly
+java -cp "target/classes;target/dependency/*" gui.RiverMonitoringGUI
+```
+
+### 🧪 4. Run Automated Test Verification Suites
+```bash
+# JPA & H2 CRUD Lifecycle automated test
+mvn spring-boot:run "-Dspring-boot.run.mainClass=dao.jpa.TestJpa"
+
+# Standalone verification suites
+java -cp "target/classes" gui.TestGUI
+java -cp "target/classes" dao.jdbc.TestJdbc
+java -cp "target/classes" network.TestNetworking
 ```
 

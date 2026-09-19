@@ -11,6 +11,7 @@ import model.WaterLevelRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,12 +24,13 @@ import service.RiverMonitoringService;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System
- * Day 14: Spring Data JPA & H2 Database Integration - Expanded REST API
- * Syllabus Unit: UNIT V - Spring @RestController, @RequestBody, @DeleteMapping, HTTP Status Codes
+ * Day 15: Modern Interactive Web Dashboard & Single-Page Application
+ * Syllabus Unit: UNIT V - Spring @RestController, @CrossOrigin, Web API Integration
  *
  * REST Controller exposing all river monitoring endpoints.
- * Day 13 provided 3 GET endpoints; Day 14 adds POST, DELETE, and JPA-powered alert queries.
+ * Provides unified JSON endpoints for the Day 15 Interactive Single-Page Web Dashboard.
  */
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api")
 public class RiverStationController {
@@ -87,6 +89,20 @@ public class RiverStationController {
             "peakWaterLevel",     monitoringService.getMaxRecordedWaterLevel(),
             "criticalAlertsCount", monitoringService.getCriticalAlertRecords().size()
         );
+    }
+
+    /**
+     * GET /api/readings
+     * Returns all historical water level records across all stations.
+     * Supports optional limit query parameter.
+     */
+    @GetMapping("/readings")
+    public List<WaterLevelRecord> getAllReadings(@RequestParam(required = false) Integer limit) {
+        List<WaterLevelRecord> all = monitoringService.getAllRecords();
+        if (limit != null && limit > 0 && limit < all.size()) {
+            return all.subList(Math.max(0, all.size() - limit), all.size());
+        }
+        return all;
     }
 
     // ======================================================================
@@ -175,6 +191,48 @@ public class RiverStationController {
         } catch (StationNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", "Station not found: " + stationId));
+        }
+    }
+
+    // ======================================================================
+    // Day 15 Endpoints (Simulation Trigger for Live Web Dashboard)
+    // ======================================================================
+
+    /**
+     * POST /api/simulation/surge
+     * Triggers an emergency flood surge (+4.5m) for a designated station or first registered station.
+     * Demonstrates real-time event generation and instant alert propagation to the web dashboard.
+     */
+    @PostMapping("/simulation/surge")
+    public ResponseEntity<?> triggerFloodSurge(@RequestParam(required = false) String stationId) {
+        try {
+            RiverStation station;
+            if (stationId != null && !stationId.trim().isEmpty()) {
+                station = monitoringService.getStationByIdOrThrow(stationId);
+            } else {
+                List<RiverStation> stations = monitoringService.getAllStations();
+                if (stations.isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("error", "No river stations available for surge simulation."));
+                }
+                station = stations.get(0);
+            }
+            double surgeLevel = Math.round((station.getDangerLevelMeters() + 2.5) * 10.0) / 10.0;
+            String timestamp = java.time.LocalDateTime.now().format(
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            WaterLevelRecord record = monitoringService.recordMeasurement(station.getStationId(), surgeLevel, timestamp + " [SURGE]");
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                "message", "⚠️ Emergency Flash Flood Surge simulated successfully!",
+                "stationId", station.getStationId(),
+                "stationName", station.getStationName(),
+                "surgeLevelMeters", surgeLevel,
+                "dangerThresholdMeters", station.getDangerLevelMeters(),
+                "alertStatus", record.getAlertStatus(),
+                "recordId", record.getRecordId()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to simulate surge: " + e.getMessage()));
         }
     }
 }
