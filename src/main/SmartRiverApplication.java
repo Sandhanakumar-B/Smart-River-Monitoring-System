@@ -7,16 +7,23 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"service", "dao", "dao.jpa", "controller", "main"})
+@ComponentScan(basePackages = {"service", "dao", "dao.jpa", "controller", "simulation", "main"})
 @EntityScan(basePackages = "model")
 @EnableJpaRepositories(basePackages = "dao.jpa")
 public class SmartRiverApplication {
 
+    @org.springframework.context.annotation.Bean
+    public simulation.RiverSimulationManager riverSimulationManager(service.RiverMonitoringService service) {
+        return new simulation.RiverSimulationManager(service, 2000); // 2-second tick interval for live SSE
+    }
+
     public static void main(String[] args) {
         SpringApplication.run(SmartRiverApplication.class, args);
         System.out.println("=================================================================");
-        System.out.println("  Smart River Management REST API is Running!                    ");
-        System.out.println("  Day 14: Spring Data JPA & H2 Database Integration Active       ");
+        System.out.println("  Smart River Management REST & SSE Streaming API is Running!   ");
+        System.out.println("  Day 16: Real-Time SSE Telemetry & Hydrological Risk Active     ");
+        System.out.println("  Web App    : http://localhost:8080/                            ");
+        System.out.println("  SSE Stream : http://localhost:8080/api/stream/telemetry        ");
         System.out.println("  H2 Console : http://localhost:8080/h2-console                  ");
         System.out.println("  API Base   : http://localhost:8080/api                         ");
         System.out.println("=================================================================");

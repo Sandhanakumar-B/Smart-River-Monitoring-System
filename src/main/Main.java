@@ -27,17 +27,19 @@ import dao.jdbc.WaterLevelRecordJdbcDAO;
 import gui.RiverMonitoringGUI;
 import gui.TestGUI;
 import service.RiverAnalyticsService;
+import service.HydrologicalRiskService;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 15: Modern Interactive Web Dashboard & Single-Page Application
- * Syllabus Unit: UNIT V - Full-Stack Web Architecture, Spring Boot Static Serving & REST APIs
+ * Day 16: Real-Time Server-Sent Events (SSE) Live Telemetry & Hydrological Risk Prediction
+ * Syllabus Unit: UNIT V - Full-Stack Web Architecture, Spring Boot Reactive SSE & Risk Analytics
  */
 public class Main {
 
     private static final RiverMonitoringService monitoringService = new RiverMonitoringService();
     private static final RiverSimulationManager simulationManager = new RiverSimulationManager(monitoringService);
     private static final MonitoringServer        networkServer     = new MonitoringServer(monitoringService);
+    private static final HydrologicalRiskService riskService       = new HydrologicalRiskService(monitoringService);
     private static RiverStation activeStation;
 
     public static void main(String[] args) {
@@ -110,6 +112,9 @@ public class Main {
                         launchWebDashboardInfo();
                         break;
                     case 17:
+                        manageDay16StreamAndRisk(scanner);
+                        break;
+                    case 18:
                         System.out.println("Stopping background sensor threads and network server...");
                         simulationManager.stopSimulation();
                         if (networkServer.isRunning()) networkServer.stopServer();
@@ -117,7 +122,7 @@ public class Main {
                         running = false;
                         break;
                     default:
-                        System.out.println("Invalid option! Please enter a number between 1 and 17.");
+                        System.out.println("Invalid option! Please enter a number between 1 and 18.");
                 }
             } else {
                 System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical menu option.");
@@ -137,7 +142,7 @@ public class Main {
         System.out.println("   SMART RIVER WATER LEVEL MONITORING & DATA COLLECTION     ");
         System.out.println("               (Using Image Processing)                     ");
         System.out.println("============================================================");
-        System.out.println("Academic Prototype - Core Java & Spring Boot (Day 15: Modern Interactive Web Dashboard)\n");
+        System.out.println("Academic Prototype - Core Java & Spring Boot (Day 16: Real-Time SSE Telemetry & Risk Engine)\n");
     }
 
     private static void displayMenu() {
@@ -158,7 +163,8 @@ public class Main {
         System.out.println("14. System Architecture & Status");
         System.out.println("15. 🗄️ Day 14: Spring Data JPA & H2 Database - ORM Reference");
         System.out.println("16. 🌐 Day 15: Launch & Access Modern Web Dashboard (Single-Page App)");
-        System.out.println("17. Exit");
+        System.out.println("17. 📡 Day 16: Real-Time SSE Telemetry & Hydrological Risk Engine");
+        System.out.println("18. Exit");
     }
 
     private static void displayAllStations() {
@@ -1130,5 +1136,66 @@ public class Main {
             System.out.println("Tip: Visit http://localhost:8080/ in your browser once the Spring server is running.");
         }
         System.out.println("==========================================================================");
+    }
+
+    private static void manageDay16StreamAndRisk(Scanner scanner) {
+        System.out.println("\n====== 📡 DAY 16: REAL-TIME SSE TELEMETRY STREAMING & HYDROLOGICAL RISK ======");
+        System.out.println("Syllabus: UNIT V - Server-Sent Events (SSE), Reactive Push Telemetry & Predictive Modeling");
+        System.out.println("Stream Endpoint : http://localhost:8080/api/stream/telemetry");
+        System.out.println("Stream Status   : http://localhost:8080/api/stream/status");
+        System.out.println("Basin Risk API  : http://localhost:8080/api/basin/risk");
+        System.out.println("Web Dashboard   : http://localhost:8080/");
+        System.out.println("----------------------------------------------------------------------------------");
+        System.out.println("1. View Real-Time Hydrological Flood Risk Assessment (All Stations)");
+        System.out.println("2. Toggle Background IoT Telemetry Simulation Worker Threads");
+        System.out.println("3. Trigger Instant Test Sensor Telemetry Broadcast Event");
+        System.out.println("4. Return to Main Menu");
+        System.out.print("Enter choice (1-4): ");
+
+        if (scanner.hasNextInt()) {
+            int sub = scanner.nextInt();
+            scanner.nextLine();
+            switch (sub) {
+                case 1:
+                    System.out.println("\n--- BASIN-WIDE HYDROLOGICAL FLOOD RISK ASSESSMENT ---");
+                    List<HydrologicalRiskService.RiskAssessment> risks = riskService.assessAllStationsRisk();
+                    System.out.printf("%-12s %-24s %-8s %-8s %-10s %-16s %-8s %-12s\n",
+                        "Station ID", "Station Name", "Level", "Danger", "Rise(m/h)", "Risk Level", "Score", "Crest ETA");
+                    System.out.println("------------------------------------------------------------------------------------------------------");
+                    for (HydrologicalRiskService.RiskAssessment r : risks) {
+                        String crest = (r.getEstimatedCrestHours() > 0) ? String.format("%.1f hrs", r.getEstimatedCrestHours()) : "Tranquil";
+                        System.out.printf("%-12s %-24s %-8.2f %-8.2f %-+10.2f %-16s %-8d %-12s\n",
+                            r.getStationId(), r.getStationName(), r.getCurrentLevel(), r.getDangerLevel(),
+                            r.getRateOfRiseMph(), r.getRiskLevel(), r.getVulnerabilityScore(), crest);
+                        System.out.println("   └─ Recommendation: " + r.getRecommendation());
+                    }
+                    break;
+                case 2:
+                    if (simulationManager.isRunning()) {
+                        simulationManager.stopSimulation();
+                        System.out.println("[STREAM] Background IoT Simulation HALTED. SSE stream paused.");
+                    } else {
+                        simulationManager.startSimulation();
+                        System.out.println("[STREAM] Background IoT Simulation STARTED. Telemetry transmitting live.");
+                    }
+                    break;
+                case 3:
+                    if (activeStation != null) {
+                        simulationManager.triggerStationSurge(activeStation.getStationId(), 1.5);
+                        System.out.println("[BROADCAST] Dispatched test surge event for " + activeStation.getStationId());
+                    } else {
+                        simulationManager.triggerBasinSurge(1.5);
+                        System.out.println("[BROADCAST] Dispatched basin-wide surge event across all stations.");
+                    }
+                    break;
+                case 4:
+                    return;
+                default:
+                    System.out.println("Invalid choice!");
+            }
+        } else {
+            scanner.nextLine();
+            System.out.println("Invalid input!");
+        }
     }
 }

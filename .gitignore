@@ -1,7 +1,11 @@
 *.class
 bin/
+target/
 *.jar
+*.mv.db
+*.trace.db
 .DS_Store
 .vscode/
 .idea/
 *.iml
+

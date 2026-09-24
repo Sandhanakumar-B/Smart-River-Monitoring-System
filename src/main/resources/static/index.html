@@ -30,16 +30,23 @@
           <h1 class="brand-title">Smart River Telemetry</h1>
           <div class="brand-tagline">
             <span>Hydrological Basin Monitoring System</span>
-            <span class="version-pill">v0.15 &bull; Spring Boot 3.2</span>
+            <span class="version-pill">v0.16 &bull; SSE Real-Time Stream</span>
           </div>
         </div>
       </div>
 
       <div class="header-actions">
-        <div class="heartbeat-pill" id="systemHeartbeat" title="Spring Boot REST API Live Connection">
-          <span class="pulse-dot"></span>
-          <span>REST &amp; JPA LIVE</span>
+        <div class="heartbeat-pill sse-pill" id="sseHeartbeat" title="Server-Sent Events (SSE) Live Telemetry Stream">
+          <span class="pulse-dot sse-dot"></span>
+          <span id="sseStatusText">SSE LIVE</span>
+          <span class="packet-counter" id="ssePacketCount">0 pkts</span>
         </div>
+        <button class="btn btn-secondary" id="btnToggleSim" title="Toggle IoT Sensor Multi-Threaded Simulation">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          <span id="simBtnLabel">Start Stream</span>
+        </button>
         <button class="btn btn-secondary" id="btnRefresh" title="Synchronize telemetry data from server">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -192,6 +199,26 @@
             <div class="gauge-stat-title">Freeboard Margin</div>
             <div class="gauge-stat-num" id="statFreeboardMargin">-- m</div>
           </div>
+        </div>
+
+        <!-- Day 16: Hydrological Predictive Risk Metrics -->
+        <div class="risk-stat-row">
+          <div class="risk-card-mini">
+            <div class="risk-label">Rate of Rise (&Delta;h/&Delta;t)</div>
+            <div class="risk-value" id="riskRateOfRise">-- m/h</div>
+          </div>
+          <div class="risk-card-mini">
+            <div class="risk-label">Risk Index</div>
+            <div class="risk-value" id="riskVulnerabilityScore">-- /100</div>
+          </div>
+          <div class="risk-card-mini">
+            <div class="risk-label">Crest Estimation</div>
+            <div class="risk-value" id="riskCrestHours">-- hrs</div>
+          </div>
+        </div>
+
+        <div class="recommendation-banner" id="riskRecommendation">
+          <span>ℹ️ Connecting to real-time hydrological early warning engine...</span>
         </div>
       </section>
 

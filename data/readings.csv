@@ -63,3 +63,18 @@ REC-1061,Ganga River,Kanpur Ghat Station (STN-KNP-03),14.88,WARNING (High Flow),
 REC-1062,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),22.47,CRITICAL (Flood Alert),2026-09-10 11:56:22 am
 REC-1063,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),2.50,NORMAL (Safe Level),2026-09-12 10:00
 REC-1064,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),15.00,WARNING (High Flow),2026-09-12 11:00
+REC-1065,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),18.00,CRITICAL (Flood Alert),2026-09-22 10:00:00 [TEST]
+REC-1066,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),7.58,NORMAL (Safe Level),2026-09-22 10:55:56 am
+REC-1067,Ganga River,Rishikesh Barrage Station (STN-RSH-02),6.18,NORMAL (Safe Level),2026-09-22 10:55:56 am
+REC-1068,Ganga River,Varanasi Assi Ghat Station (STN-VRN-04),9.06,NORMAL (Safe Level),2026-09-22 10:55:56 am
+REC-1069,Ganga River,Kanpur Ghat Station (STN-KNP-03),8.09,NORMAL (Safe Level),2026-09-22 10:55:56 am
+REC-1070,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),18.00,CRITICAL (Flood Alert),2026-09-22 10:00:00 [TEST]
+REC-1071,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),7.54,NORMAL (Safe Level),2026-09-22 10:59:01 am
+REC-1072,Ganga River,Varanasi Assi Ghat Station (STN-VRN-04),9.21,NORMAL (Safe Level),2026-09-22 10:59:01 am
+REC-1073,Ganga River,Rishikesh Barrage Station (STN-RSH-02),6.22,NORMAL (Safe Level),2026-09-22 10:59:01 am
+REC-1074,Ganga River,Kanpur Ghat Station (STN-KNP-03),8.02,NORMAL (Safe Level),2026-09-22 10:59:01 am
+REC-1075,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),18.00,CRITICAL (Flood Alert),2026-09-22 10:00:00 [TEST]
+REC-1076,Ganga River,Rishikesh Barrage Station (STN-RSH-02),6.17,NORMAL (Safe Level),2026-09-24 07:34:58 am
+REC-1077,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),7.58,NORMAL (Safe Level),2026-09-24 07:34:58 am
+REC-1078,Ganga River,Varanasi Assi Ghat Station (STN-VRN-04),9.02,NORMAL (Safe Level),2026-09-24 07:34:58 am
+REC-1079,Ganga River,Kanpur Ghat Station (STN-KNP-03),7.88,NORMAL (Safe Level),2026-09-24 07:34:58 am

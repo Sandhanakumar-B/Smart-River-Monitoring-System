@@ -18,6 +18,15 @@ const AppState = {
   autoRefreshInterval: 5000,
   countdownTimer: 5,
   
+  // Day 16: SSE Real-Time Streaming State
+  sse: {
+    eventSource: null,
+    connected: false,
+    packetCount: 0,
+    simulationRunning: false
+  },
+  risk: null,
+
   // Animation state for Water Level Gauge
   gauge: {
     currentLevel: 7.5,
@@ -53,6 +62,24 @@ const ApiService = {
   async getAlerts() {
     const res = await fetch('/api/readings/alerts');
     if (!res.ok) throw new Error(`Failed to load alerts (${res.status})`);
+    return await res.json();
+  },
+
+  async getStationRisk(stationId) {
+    const res = await fetch(`/api/stations/${encodeURIComponent(stationId)}/risk`);
+    if (!res.ok) return null;
+    return await res.json();
+  },
+
+  async toggleSimulation(start) {
+    const endpoint = start ? '/api/stream/simulation/start' : '/api/stream/simulation/stop';
+    const res = await fetch(endpoint, { method: 'POST' });
+    return await res.json();
+  },
+
+  async getStreamStatus() {
+    const res = await fetch('/api/stream/status');
+    if (!res.ok) return null;
     return await res.json();
   },
 
@@ -323,15 +350,24 @@ const DashboardController = {
     this.gaugeRenderer = new RiverGaugeRenderer('gaugeCanvas');
     this.setupEventListeners();
     await this.refreshAll();
+    this.initSseStream(); // Day 16: Initialize Live SSE Telemetry Pipeline
     this.startAutoRefresh();
   },
 
   setupEventListeners() {
     // Station Select Dropdown
     const stationSelect = document.getElementById('stationSelect');
-    stationSelect.addEventListener('change', (e) => {
-      this.selectStationById(e.target.value);
+    stationSelect.addEventListener('change', async (e) => {
+      await this.selectStationById(e.target.value);
     });
+
+    // Day 16: Toggle Live Stream Button
+    const btnSim = document.getElementById('btnToggleSim');
+    if (btnSim) {
+      btnSim.addEventListener('click', async () => {
+        await this.toggleSimulationStream();
+      });
+    }
 
     // Quick Simulation Flood Surge Button
     document.getElementById('btnSurge').addEventListener('click', async () => {
@@ -419,6 +455,10 @@ const DashboardController = {
       this.renderAlertBanner();
       this.renderTelemetryFeed();
       this.renderStationGrid();
+
+      if (AppState.selectedStation) {
+        await this.fetchAndDisplayRisk(AppState.selectedStation.stationId);
+      }
     } catch (err) {
       console.error('Refresh Error:', err);
       this.showToast('Network error updating telemetry: ' + err.message, 'error');
@@ -439,12 +479,13 @@ const DashboardController = {
     });
   },
 
-  selectStationById(stationId) {
+  async selectStationById(stationId) {
     const stn = AppState.stations.find(s => s.stationId === stationId);
     if (stn) {
       AppState.selectedStation = stn;
       this.updateGaugeTargetLevel();
       this.renderStationDetailPills();
+      await this.fetchAndDisplayRisk(stationId);
     }
   },
 
@@ -716,6 +757,171 @@ const DashboardController = {
       if (!AppState.autoRefresh) return;
       await this.refreshAll();
     }, AppState.autoRefreshInterval);
+  },
+
+  // ========================================================================
+  // Day 16: SSE Live Telemetry Streaming & Hydrological Risk Methods
+  // ========================================================================
+
+  initSseStream() {
+    if (!window.EventSource) {
+      console.warn('Browser does not support Server-Sent Events (SSE). Falling back to HTTP polling.');
+      return;
+    }
+
+    try {
+      const source = new EventSource('/api/stream/telemetry');
+      AppState.sse.eventSource = source;
+
+      source.addEventListener('open', () => {
+        AppState.sse.connected = true;
+        const text = document.getElementById('sseStatusText');
+        if (text) text.textContent = 'SSE LIVE';
+        const dot = document.querySelector('.sse-dot');
+        if (dot) dot.style.background = '#00f2fe';
+      });
+
+      source.addEventListener('connected', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          AppState.sse.simulationRunning = !!data.simulationRunning;
+          this.updateSimBtn();
+        } catch (err) {}
+      });
+
+      source.addEventListener('telemetry', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          AppState.sse.packetCount++;
+          const counter = document.getElementById('ssePacketCount');
+          if (counter) counter.textContent = `${AppState.sse.packetCount} pkts`;
+
+          // If event belongs to currently selected station, update gauge smoothly in real-time
+          if (AppState.selectedStation && AppState.selectedStation.stationId === data.stationId) {
+            AppState.gauge.targetLevel = data.waterLevel;
+            this.renderStationDetailPills(data.waterLevel);
+            this.updateRiskDisplay(data);
+
+            const canvasWrap = document.querySelector('.gauge-canvas-wrap');
+            if (canvasWrap) {
+              canvasWrap.classList.remove('stream-pulse-active');
+              void canvasWrap.offsetWidth; // trigger reflow
+              canvasWrap.classList.add('stream-pulse-active');
+            }
+          }
+
+          // Prepend to telemetry readings feed
+          AppState.readings.push({
+            recordId: 'REC-SSE-' + data.packetId,
+            stationLocation: `${data.stationName} (${data.stationId})`,
+            waterLevelMeters: data.waterLevel,
+            alertStatus: data.alertStatus,
+            timestamp: data.timestamp,
+            riverName: data.riverName
+          });
+          if (AppState.readings.length > 60) AppState.readings.shift();
+          this.renderTelemetryFeed();
+
+          // If danger or critical warning, refresh alert banner
+          if (data.alertStatus.includes('CRITICAL') || data.alertStatus.includes('WARNING')) {
+            this.renderAlertBanner();
+          }
+        } catch (err) {
+          console.error('SSE packet parse error:', err);
+        }
+      });
+
+      source.addEventListener('flood_alert', (e) => {
+        try {
+          const alertData = JSON.parse(e.data);
+          this.showToast(`🚨 FLOOD SURGE ALERT: ${alertData.stationName} recorded ${alertData.waterLevel.toFixed(1)}m!`, 'error');
+          this.renderAlertBanner();
+        } catch (err) {}
+      });
+
+      source.addEventListener('error', () => {
+        AppState.sse.connected = false;
+        const text = document.getElementById('sseStatusText');
+        if (text) text.textContent = 'RECONNECTING';
+        const dot = document.querySelector('.sse-dot');
+        if (dot) dot.style.background = '#ef4444';
+      });
+    } catch (e) {
+      console.error('Failed to initialize SSE EventSource:', e);
+    }
+  },
+
+  async toggleSimulationStream() {
+    const isRunning = AppState.sse.simulationRunning;
+    try {
+      const res = await ApiService.toggleSimulation(!isRunning);
+      AppState.sse.simulationRunning = !isRunning;
+      this.updateSimBtn();
+      this.showToast(res.message, isRunning ? 'info' : 'success');
+    } catch (err) {
+      this.showToast('Stream control failed: ' + err.message, 'error');
+    }
+  },
+
+  updateSimBtn() {
+    const btnLabel = document.getElementById('simBtnLabel');
+    if (btnLabel) {
+      btnLabel.textContent = AppState.sse.simulationRunning ? 'Stop Stream' : 'Start Stream';
+    }
+  },
+
+  async fetchAndDisplayRisk(stationId) {
+    try {
+      const risk = await ApiService.getStationRisk(stationId);
+      if (risk) {
+        this.updateRiskDisplay(risk);
+      }
+    } catch (err) {}
+  },
+
+  updateRiskDisplay(data) {
+    const rateEl = document.getElementById('riskRateOfRise');
+    const vulnEl = document.getElementById('riskVulnerabilityScore');
+    const crestEl = document.getElementById('riskCrestHours');
+    const recEl = document.getElementById('riskRecommendation');
+
+    if (rateEl && data.rateOfRiseMph !== undefined) {
+      const sign = data.rateOfRiseMph > 0 ? '+' : '';
+      rateEl.textContent = `${sign}${data.rateOfRiseMph} m/h`;
+      rateEl.style.color = data.rateOfRiseMph > 0.4 ? '#ef4444' : (data.rateOfRiseMph > 0.1 ? '#f59e0b' : '#34d399');
+    }
+
+    if (vulnEl && data.vulnerabilityScore !== undefined) {
+      vulnEl.textContent = `${data.vulnerabilityScore} /100`;
+      vulnEl.style.color = data.vulnerabilityScore >= 80 ? '#ef4444' : (data.vulnerabilityScore >= 50 ? '#f59e0b' : '#34d399');
+    }
+
+    if (crestEl) {
+      if (data.estimatedCrestHours && data.estimatedCrestHours > 0) {
+        crestEl.textContent = `${data.estimatedCrestHours.toFixed(1)} hrs`;
+        crestEl.style.color = '#ef4444';
+      } else {
+        crestEl.textContent = 'Tranquil';
+        crestEl.style.color = '#34d399';
+      }
+    }
+
+    if (recEl && data.recommendation) {
+      let icon = '✅';
+      let border = 'var(--status-normal)';
+      if (data.riskLevel === 'CRITICAL_SURGE') {
+        icon = '🚨';
+        border = 'var(--status-critical)';
+      } else if (data.riskLevel === 'WARNING') {
+        icon = '⚠️';
+        border = 'var(--status-warning)';
+      } else if (data.riskLevel === 'ELEVATED') {
+        icon = 'ℹ️';
+        border = 'var(--color-primary)';
+      }
+      recEl.style.borderLeftColor = border;
+      recEl.innerHTML = `<span>${this.escapeHtml(data.recommendation)}</span>`;
+    }
   },
 
   showToast(message, type = 'info') {

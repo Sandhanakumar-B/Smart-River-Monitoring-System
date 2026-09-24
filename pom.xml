@@ -10,9 +10,9 @@
     </parent>
     <groupId>com.smartriver</groupId>
     <artifactId>smartriver</artifactId>
-    <version>0.15.0-SNAPSHOT</version>
+    <version>0.16.0-SNAPSHOT</version>
     <name>Smart River Management System</name>
-    <description>Day 15: Modern Interactive Web Dashboard &amp; Single-Page Application</description>
+    <description>Day 16: Real-Time SSE Live Telemetry Streaming &amp; Hydrological Risk Prediction Engine</description>
     <properties>
         <java.version>17</java.version>
     </properties>

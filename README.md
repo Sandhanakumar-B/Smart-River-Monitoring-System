@@ -291,15 +291,43 @@ SmartRiverWaterLevel/
 
 ---
 
+### Day 16: Real-Time Server-Sent Events (SSE) Live Telemetry & Hydrological Risk Prediction Engine
+- Implemented reactive push architecture utilizing **Server-Sent Events (SSE)** via Spring MVC `SseEmitter` (`src/controller/RiverStreamController.java`):
+  - `GET /api/stream/telemetry` — Live HTTP event stream pushing IoT sensor telemetry and emergency flood alerts directly to web clients without polling
+  - `GET /api/stream/status` — Returns streaming health metrics, active subscriber counts, and simulation states
+  - `POST /api/stream/simulation/start` & `POST /api/stream/simulation/stop` — Dynamic lifecycle control of IoT background worker threads
+- Created **Hydrological Risk Prediction Engine** (`src/service/HydrologicalRiskService.java`):
+  - Trend vector analysis ($\Delta h / \Delta t$) computing rate of rise in meters per hour ($m/h$)
+  - Flood vulnerability score ($0 - 100$) integrating physical height ratios and velocity rates
+  - Crest time arrival estimation (hours until danger mark breach)
+  - Proactive safety recommendations (`SAFE`, `ELEVATED`, `WARNING`, `CRITICAL_SURGE`)
+  - `GET /api/stations/{stationId}/risk` & `GET /api/basin/risk` — REST endpoints delivering predictive analytics
+- **Web Dashboard Live Real-Time Integration** (`src/main/resources/static/`):
+  - Top header reactive status pill displaying live SSE connectivity (`SSE LIVE`) with pulse dot and packet counters
+  - Live Stream Start/Stop toggle button triggering server-side multithreaded IoT sensors
+  - Client `EventSource` connection in `app.js` with instant gauge needle/water animation upon telemetry receipt
+  - Dynamic risk stat cards (Rate of Rise, Vulnerability Index, Crest ETA) and early warning banner
+- **Console Application Integration**:
+  - Added **Menu Option 17: 📡 Day 16: Real-Time SSE Telemetry & Hydrological Risk Engine**
+  - Updated `Main.java` to version **v0.16 (Day 16: Real-Time SSE Telemetry & Risk Engine)**
+- Created **Automated Verification Suite** (`src/service/TestDay16StreamAndRisk.java`):
+  - Verified nominal and surge risk assessments, basin overview, SSE emitter subscription, broadcast dispatch, and simulation lifecycle controls (all 6 tests passing)
+- Updated `pom.xml` to version **v0.16.0-SNAPSHOT**
+
+---
+
 ## 💻 How to Compile and Run:
 
 ### 🌐 1. Launch Modern Web Dashboard & Spring Boot REST API (Recommended)
 ```bash
-# Run Spring Boot application (serves Web UI + REST API + H2 Console)
+# Run Spring Boot application (serves Web UI + REST API + SSE Stream + H2 Console)
 mvn spring-boot:run
 
 # Open Web Dashboard in your browser:
 # http://localhost:8080/
+
+# Live SSE Telemetry Stream:
+# http://localhost:8080/api/stream/telemetry
 
 # Access H2 Database Web Console:
 # http://localhost:8080/h2-console  (JDBC URL: jdbc:h2:file:./data/riverdb_jpa)
@@ -323,6 +351,9 @@ java -cp "target/classes;target/dependency/*" gui.RiverMonitoringGUI
 
 ### 🧪 4. Run Automated Test Verification Suites
 ```bash
+# Day 16: SSE Streaming & Hydrological Risk verification suite
+mvn exec:java "-Dexec.mainClass=service.TestDay16StreamAndRisk"
+
 # JPA & H2 CRUD Lifecycle automated test
 mvn spring-boot:run "-Dspring-boot.run.mainClass=dao.jpa.TestJpa"
 
@@ -331,4 +362,5 @@ java -cp "target/classes" gui.TestGUI
 java -cp "target/classes" dao.jdbc.TestJdbc
 java -cp "target/classes" network.TestNetworking
 ```
+
 
