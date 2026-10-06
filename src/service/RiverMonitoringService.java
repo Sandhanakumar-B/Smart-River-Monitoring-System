@@ -67,17 +67,24 @@ public class RiverMonitoringService {
         this.records.clear();
 
         try {
-            List<RiverStation> storedStations = this.stationDAO.getAllStations();
-            this.stations.addAll(storedStations);
+            if (this.stationDAO != null) {
+                List<RiverStation> storedStations = this.stationDAO.getAllStations();
+                if (storedStations != null) {
+                    this.stations.addAll(storedStations);
+                }
+            }
 
-            List<WaterLevelRecord> storedRecords = this.recordDAO.getAllRecords();
-            this.records.addAll(storedRecords);
+            if (this.recordDAO != null) {
+                List<WaterLevelRecord> storedRecords = this.recordDAO.getAllRecords();
+                if (storedRecords != null) {
+                    this.records.addAll(storedRecords);
+                }
+            }
         } catch (IOException e) {
             System.err.println("[RiverMonitoringService Error] Failed to load data from storage: " + e.getMessage());
-            bootstrapDefaultsIfEmpty();
         }
 
-        if (this.stations.isEmpty()) {
+        if (this.stations.isEmpty() && (this.stationDAO instanceof StationFileDAO)) {
             bootstrapDefaultsIfEmpty();
         }
     }
@@ -109,15 +116,19 @@ public class RiverMonitoringService {
             throw new IllegalArgumentException("Station and Station ID cannot be null or empty.");
         }
 
-        if (getStationById(station.getStationId()) != null) {
-            throw new DuplicateStationException(station.getStationId());
-        }
-
-        this.stations.add(station);
-
-        // Persist via DAO
         try {
-            this.stationDAO.saveStation(station);
+            boolean existsInDAO = (this.stationDAO != null && this.stationDAO.existsById(station.getStationId()));
+            boolean existsInMemory = (getStationById(station.getStationId()) != null);
+
+            if (existsInDAO || existsInMemory) {
+                throw new DuplicateStationException(station.getStationId());
+            }
+
+            this.stations.add(station);
+
+            if (this.stationDAO != null) {
+                this.stationDAO.saveStation(station);
+            }
         } catch (IOException e) {
             System.err.println("[Persistence Warning] Failed to save station to permanent storage: " + e.getMessage());
         }
@@ -127,6 +138,16 @@ public class RiverMonitoringService {
      * Returns an unmodifiable view of all registered stations
      */
     public List<RiverStation> getAllStations() {
+        try {
+            if (this.stationDAO != null) {
+                List<RiverStation> list = this.stationDAO.getAllStations();
+                if (list != null) {
+                    return Collections.unmodifiableList(list);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("[DAO Warning] Failed to fetch stations from storage: " + e.getMessage());
+        }
         return Collections.unmodifiableList(this.stations);
     }
 
@@ -137,7 +158,18 @@ public class RiverMonitoringService {
         if (stationId == null) {
             return null;
         }
-        return this.stations.stream()
+        try {
+            if (this.stationDAO != null) {
+                RiverStation stn = this.stationDAO.getStationById(stationId.trim());
+                if (stn != null) {
+                    return stn;
+                }
+            }
+        } catch (IOException e) {
+            // fallback to list search below
+        }
+
+        return getAllStations().stream()
                 .filter(station -> station.getStationId().equalsIgnoreCase(stationId.trim()))
                 .findFirst()
                 .orElse(null);
@@ -167,13 +199,15 @@ public class RiverMonitoringService {
 
         RiverStation station = getStationByIdOrThrow(stationId);
 
-        String recordId = "REC-" + (1000 + this.records.size() + 1);
+        String recordId = "REC-" + (1000 + getAllRecords().size() + 1);
         WaterLevelRecord record = station.generateReading(recordId, levelMeters, timestamp);
         this.records.add(record);
 
         // Persist via DAO
         try {
-            this.recordDAO.saveRecord(record);
+            if (this.recordDAO != null) {
+                this.recordDAO.saveRecord(record);
+            }
         } catch (IOException e) {
             System.err.println("[Persistence Warning] Failed to save record to permanent storage: " + e.getMessage());
         }
@@ -185,6 +219,16 @@ public class RiverMonitoringService {
      * Returns all historical water level readings
      */
     public List<WaterLevelRecord> getAllRecords() {
+        try {
+            if (this.recordDAO != null) {
+                List<WaterLevelRecord> list = this.recordDAO.getAllRecords();
+                if (list != null) {
+                    return Collections.unmodifiableList(list);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("[DAO Warning] Failed to fetch records from storage: " + e.getMessage());
+        }
         return Collections.unmodifiableList(this.records);
     }
 
@@ -192,7 +236,7 @@ public class RiverMonitoringService {
      * Filters and returns only readings that triggered critical flood warnings
      */
     public List<WaterLevelRecord> getCriticalAlertRecords() {
-        return this.records.stream()
+        return getAllRecords().stream()
                 .filter(record -> record.getAlertStatus().startsWith("CRITICAL") || record.getAlertStatus().startsWith("WARNING"))
                 .collect(Collectors.toList());
     }
@@ -201,7 +245,7 @@ public class RiverMonitoringService {
      * Computes the mathematical average of all recorded water levels
      */
     public double getAverageWaterLevel() {
-        return this.records.stream()
+        return getAllRecords().stream()
                 .mapToDouble(WaterLevelRecord::getWaterLevelMeters)
                 .average()
                 .orElse(0.0);
@@ -211,18 +255,18 @@ public class RiverMonitoringService {
      * Finds the maximum water level recorded so far
      */
     public double getMaxRecordedWaterLevel() {
-        return this.records.stream()
+        return getAllRecords().stream()
                 .mapToDouble(WaterLevelRecord::getWaterLevelMeters)
                 .max()
                 .orElse(0.0);
     }
 
     public int getTotalStationsCount() {
-        return this.stations.size();
+        return getAllStations().size();
     }
 
     public int getTotalReadingsCount() {
-        return this.records.size();
+        return getAllRecords().size();
     }
 
     /**

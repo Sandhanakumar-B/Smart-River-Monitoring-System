@@ -29,7 +29,7 @@ public class WaterLevelRecord {
         this.alertStatus = evaluateAlertStatus(0.0);
     }
 
-    // Parameterized constructor
+    // Parameterized constructor (5 arguments - calculates alertStatus automatically)
     public WaterLevelRecord(String recordId, String riverName, String stationLocation, double waterLevelMeters, String timestamp) {
         this.recordId = recordId;
         this.riverName = riverName;
@@ -37,6 +37,16 @@ public class WaterLevelRecord {
         this.waterLevelMeters = waterLevelMeters;
         this.timestamp = timestamp;
         this.alertStatus = evaluateAlertStatus(waterLevelMeters);
+    }
+
+    // Parameterized constructor (6 arguments - explicit alertStatus)
+    public WaterLevelRecord(String recordId, String riverName, String stationLocation, double waterLevelMeters, String alertStatus, String timestamp) {
+        this.recordId = recordId;
+        this.riverName = riverName;
+        this.stationLocation = stationLocation;
+        this.waterLevelMeters = waterLevelMeters;
+        this.alertStatus = (alertStatus != null && !alertStatus.isEmpty()) ? alertStatus : evaluateAlertStatus(waterLevelMeters);
+        this.timestamp = timestamp;
     }
 
     // Helper method to determine status based on water level

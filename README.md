@@ -12,62 +12,95 @@ This project monitors river water levels by processing river gauge/surface image
 ## 📁 Project Structure
 ```
 SmartRiverWaterLevel/
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml                     # Day 20: GitHub Actions CI/CD Pipeline
 ├── src/
-│   ├── main/
-│   │   └── Main.java
-│   ├── model/
-│   │   ├── RiverStation.java
-│   │   └── WaterLevelRecord.java
-│   ├── service/
-│   │   └── RiverMonitoringService.java
-│   ├── exception/
+│   ├── controller/                       # Spring Boot REST & SSE Controllers
+│   │   ├── AuthController.java           # Day 17: JWT Authentication & Login REST API
+│   │   ├── RiverStationController.java   # Day 13: Station Management REST API
+│   │   └── RiverStreamController.java    # Day 16: SSE Telemetry & Risk REST API
+│   ├── dao/                              # Data Access Object Layer
+│   │   ├── StationDAO.java               # Day 7: Station DAO Interface
+│   │   ├── StationFileDAO.java           # Day 7: CSV File DAO for Stations
+│   │   ├── WaterLevelRecordDAO.java      # Day 7: Record DAO Interface
+│   │   ├── WaterLevelRecordFileDAO.java  # Day 7: CSV File DAO for Readings
+│   │   ├── jdbc/                         # Day 10-11: JDBC Persistence
+│   │   │   ├── DatabaseConnectionManager.java
+│   │   │   ├── RiverJdbcDriver.java
+│   │   │   ├── StationJdbcDAO.java
+│   │   │   ├── WaterLevelRecordJdbcDAO.java
+│   │   │   └── TestJdbc.java
+│   │   └── jpa/                          # Day 14: Spring Data JPA & H2
+│   │       ├── StationEntity.java
+│   │       ├── WaterLevelRecordEntity.java
+│   │       ├── StationJpaRepository.java
+│   │       ├── WaterLevelRecordJpaRepository.java
+│   │       └── TestJpa.java
+│   ├── exception/                        # Custom Business Exceptions
 │   │   ├── DuplicateStationException.java
 │   │   ├── InvalidWaterLevelException.java
 │   │   └── StationNotFoundException.java
-│   ├── imageprocessing/
+│   ├── gui/                              # Desktop Swing Visualization
+│   │   ├── RiverGaugeVisualizerPanel.java
+│   │   ├── RiverMonitoringGUI.java
+│   │   └── TestGUI.java
+│   ├── imageprocessing/                  # Computer Vision Subsystem
 │   │   ├── GaugeProcessingResult.java
 │   │   ├── GenerateBenchmarkImages.java
 │   │   └── WaterLevelImageProcessor.java
-│   ├── dao/
-│   │   ├── StationDAO.java
-│   │   ├── StationFileDAO.java
-│   │   ├── WaterLevelRecordDAO.java
-│   │   ├── WaterLevelRecordFileDAO.java
-│   │   └── jdbc/
-│   │       ├── DatabaseConnectionManager.java
-│   │       ├── RiverJdbcDriver.java
-│   │       ├── StationJdbcDAO.java
-│   │       ├── WaterLevelRecordJdbcDAO.java
-│   │       └── TestJdbc.java
-│   ├── simulation/
+│   ├── main/                             # Application Entry Points
+│   │   ├── Main.java                     # Interactive 22-Option Console CLI
+│   │   ├── SmartRiverApplication.java    # Spring Boot Main Entry Point
+│   │   └── TestDay19Docker.java          # Day 19: Docker Configuration Verification
+│   ├── model/                            # Domain Entities & Value Objects
+│   │   ├── RiverStation.java
+│   │   └── WaterLevelRecord.java
+│   ├── network/                          # Socket Networking Layer
+│   │   ├── ClientHandler.java
+│   │   ├── MonitoringClient.java
+│   │   ├── MonitoringProtocol.java
+│   │   ├── MonitoringServer.java
+│   │   └── TestNetworking.java
+│   ├── security/                         # Day 17: Spring Security & JWT Subsystem
+│   │   ├── JwtAuthenticationFilter.java  # Bearer Token Request Interceptor
+│   │   ├── JwtTokenProvider.java         # HMAC-SHA512 Token Generator/Validator
+│   │   ├── SecurityConfig.java           # SecurityFilterChain & RBAC Config
+│   │   └── TestDay17Security.java        # Day 17: Security Verification Suite
+│   ├── service/                          # Business Logic Layer
+│   │   ├── HydrologicalRiskService.java  # Day 16: Predictive Risk Engine
+│   │   ├── RiverAnalyticsService.java    # Day 12: Stream API Analytics
+│   │   ├── RiverMonitoringService.java   # Core Basin Orchestration Service
+│   │   └── TestDay16StreamAndRisk.java   # Day 16: Verification Suite
+│   ├── simulation/                       # Real-Time Multithreaded IoT Engine
 │   │   ├── RiverSimulationManager.java
 │   │   ├── SensorEvent.java
 │   │   ├── SensorEventListener.java
 │   │   └── StationSensorSimulator.java
-│   ├── network/
-│   │   ├── MonitoringProtocol.java
-│   │   ├── MonitoringServer.java
-│   │   ├── ClientHandler.java
-│   │   ├── MonitoringClient.java
-│   │   └── TestNetworking.java
-│   └── gui/
-│       ├── RiverGaugeVisualizerPanel.java
-│       ├── RiverMonitoringGUI.java
-│       └── TestGUI.java
-│   ├── main/
-│   │   └── Main.java
-├── data/
+│   └── test/java/                        # Day 18: JUnit 5 & Mockito Test Suites
+│       ├── security/
+│       │   └── JwtTokenProviderTest.java
+│       └── service/
+│           ├── HydrologicalRiskServiceTest.java
+│           └── RiverMonitoringServiceTest.java
+├── src/main/resources/
+│   ├── application.properties
+│   └── static/                           # Day 15: Modern Glassmorphic Web Dashboard
+│       ├── app.js
+│       ├── index.html
+│       └── styles.css
+├── data/                                 # File & Database Storage
 │   ├── readings.csv
 │   ├── stations.csv
 │   └── riverdb.mv.db
-├── images/
+├── images/                               # Benchmark Gauge Images
 │   ├── gauge_flood.png
 │   ├── gauge_normal.png
 │   └── gauge_warning.png
-├── screenshots/
-├── docs/
-├── README.md
-└── .gitignore
+├── Dockerfile                            # Day 19: Multi-Stage JRE Container Build
+├── docker-compose.yml                    # Day 19: Container Orchestration
+├── pom.xml                               # Maven Project Descriptor (v0.20.0-SNAPSHOT)
+└── README.md                             # Comprehensive 20-Day Documentation
 ```
 
 ---
@@ -316,11 +349,67 @@ SmartRiverWaterLevel/
 
 ---
 
+### Day 17: Spring Security & JWT Token Authentication
+- Implemented stateless token-based security subsystem in `src/security/`:
+  - `JwtTokenProvider.java` — Cryptographic HMAC-SHA512 token generator, signing key resolver, claims extractor, and validator
+  - `JwtAuthenticationFilter.java` — `OncePerRequestFilter` inspecting `Authorization: Bearer <token>` headers
+  - `SecurityConfig.java` — `SecurityFilterChain` configuring `SessionCreationPolicy.STATELESS`, CORS, and Role-Based Access Control (RBAC)
+  - `AuthController.java` (`src/controller/`) — REST endpoints for authentication:
+    - `POST /api/auth/login` — Authenticates credentials, returns `accessToken` (1-hour validity) and `refreshToken` (24-hour validity)
+    - `POST /api/auth/refresh` — Generates fresh access token from valid refresh token
+    - `GET /api/auth/me` — Returns authenticated user profile and roles
+    - `GET /api/auth/info` — Public health and authentication guide
+- Added demo accounts: `admin / admin123` (`ROLE_ADMIN`, `ROLE_VIEWER`) and `viewer / viewer123` (`ROLE_VIEWER`)
+- Created **Automated Verification Suite** (`src/security/TestDay17Security.java`) verifying 9 security test cases
+
+---
+
+### Day 18: Unit Testing with JUnit 5 & Mockito
+- Established comprehensive testing architecture under `src/test/java/`:
+  - `RiverMonitoringServiceTest.java` (17 tests) — Isolation unit tests using `@ExtendWith(MockitoExtension.class)`, `@Mock`, `@InjectMocks`, `when().thenReturn()`, `verify()`, and `assertThrows()`
+  - `HydrologicalRiskServiceTest.java` (6 tests) — Predictive risk score validation, escalation thresholds, and boundary conditions
+  - `JwtTokenProviderTest.java` (10 tests) — Token generation, signature validation, tamper rejection, expired token handling, and claims extraction
+- Configured `maven-surefire-plugin` and `spring-boot-starter-test`
+- Total Test Coverage: **33 automated test cases**, 100% passing with 0 failures
+
+---
+
+### Day 19: Containerization & Deployment with Docker & Docker Compose
+- Created production-ready **Multi-Stage Dockerfile** (`Dockerfile`):
+  - **Stage 1 (Builder)**: `maven:3.9-eclipse-temurin-17-alpine` compiles and packages the fat JAR
+  - **Stage 2 (Runtime)**: `eclipse-temurin:17-jre-alpine` lightweight hardened runtime image (~180MB)
+  - Configured non-root system user (`riverapp:riverapp`) for principle of least privilege
+  - Added Docker `HEALTHCHECK` directive monitoring `/api/auth/info`
+  - Applied container-tuned JVM options: `-Xmx256m -XX:+UseG1GC`
+- Created **Docker Compose Configuration** (`docker-compose.yml`):
+  - Service definition for `smart-river-app` mapping port `8080:8080`
+  - Persistent volume mounts for `./data:/app/data` and `./images:/app/images`
+  - Container health checking and restart policies
+- Created **Automated Verification Suite** (`src/main/TestDay19Docker.java`) validating all 8 containerization parameters
+
+---
+
+### Day 20: CI/CD Pipeline & Final Project Polish
+- Created automated **GitHub Actions CI/CD Workflow** (`.github/workflows/ci-cd.yml`):
+  - Triggers on `push` and `pull_request` to `main`/`master`
+  - Automated JDK 17 matrix build, dependency caching, and full test suite execution
+  - Docker container image build and health validation
+- Completed **Interactive 22-Option Console CLI** (`src/main/Main.java`):
+  - Options 1-17: All core monitoring, simulation, GUI, JDBC, JPA, and risk features
+  - Option 18: 🛡️ Day 17: Spring Security & JWT Authentication
+  - Option 19: 🧪 Day 18: JUnit 5 & Mockito Test Suite Runner
+  - Option 20: 🐳 Day 19: Docker Containerization & Deployment Info
+  - Option 21: 🏆 Day 20: Final Project Milestone Summary
+  - Option 22: Safe System Exit & Resource Cleanup
+- Updated `pom.xml` to final release **v0.20.0-SNAPSHOT**
+
+---
+
 ## 💻 How to Compile and Run:
 
 ### 🌐 1. Launch Modern Web Dashboard & Spring Boot REST API (Recommended)
 ```bash
-# Run Spring Boot application (serves Web UI + REST API + SSE Stream + H2 Console)
+# Run Spring Boot application (serves Web UI + REST API + SSE Stream + JWT Auth + H2 Console)
 mvn spring-boot:run
 
 # Open Web Dashboard in your browser:
@@ -333,31 +422,70 @@ mvn spring-boot:run
 # http://localhost:8080/h2-console  (JDBC URL: jdbc:h2:file:./data/riverdb_jpa)
 ```
 
-### ☕ 2. Run Interactive Console Application
+### 🔐 2. Test JWT Authentication via REST API
+```bash
+# 1. Login to obtain JWT Token
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "admin123"}'
+
+# 2. Access Protected Endpoints with Bearer Token
+curl -X GET http://localhost:8080/api/auth/me \
+  -H "Authorization: Bearer <YOUR_ACCESS_TOKEN>"
+
+# 3. Public Auth Info
+curl -X GET http://localhost:8080/api/auth/info
+```
+
+### ☕ 3. Run Interactive 22-Option Console Application
 ```bash
 # Compile and run via Maven
 mvn clean compile
-mvn exec:java -Dexec.mainClass="main.Main"
+mvn exec:java "-Dexec.mainClass=main.Main"
 
 # Or run Main directly from target/classes
 java -cp "target/classes;target/dependency/*" main.Main
 ```
 
-### 🖥️ 3. Run Java Swing Desktop GUI Dashboard
+### 🧪 4. Run Automated JUnit 5 & Mockito Test Suites (Day 18)
 ```bash
-# Launch Desktop GUI directly
-java -cp "target/classes;target/dependency/*" gui.RiverMonitoringGUI
+# Run all 33 unit and integration tests via Maven Surefire
+mvn test
 ```
 
-### 🧪 4. Run Automated Test Verification Suites
+### 🐳 5. Build and Run with Docker (Day 19)
 ```bash
-# Day 16: SSE Streaming & Hydrological Risk verification suite
-mvn exec:java "-Dexec.mainClass=service.TestDay16StreamAndRisk"
+# Build the Docker container image
+docker build -t smart-river-system .
 
-# JPA & H2 CRUD Lifecycle automated test
+# Run container standalone
+docker run -d -p 8080:8080 --name smart-river smart-river-system
+
+# Or run using Docker Compose
+docker-compose up -d
+
+# View container logs
+docker-compose logs -f smart-river-app
+
+# Stop containers
+docker-compose down
+```
+
+### 🔬 6. Run Standalone Verification Suites
+```bash
+# Day 17: Spring Security & JWT Auth Verification (9 tests)
+mvn compile exec:java "-Dexec.mainClass=security.TestDay17Security"
+
+# Day 19: Docker & Containerization Verification (8 tests)
+mvn compile exec:java "-Dexec.mainClass=main.TestDay19Docker"
+
+# Day 16: SSE Streaming & Hydrological Risk Verification (6 tests)
+mvn compile exec:java "-Dexec.mainClass=service.TestDay16StreamAndRisk"
+
+# Day 14: JPA & H2 CRUD Lifecycle Verification
 mvn spring-boot:run "-Dspring-boot.run.mainClass=dao.jpa.TestJpa"
 
-# Standalone verification suites
+# Standalone desktop GUI, JDBC and Networking suites
 java -cp "target/classes" gui.TestGUI
 java -cp "target/classes" dao.jdbc.TestJdbc
 java -cp "target/classes" network.TestNetworking

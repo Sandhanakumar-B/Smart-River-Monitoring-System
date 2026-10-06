@@ -78,3 +78,8 @@ REC-1076,Ganga River,Rishikesh Barrage Station (STN-RSH-02),6.17,NORMAL (Safe Le
 REC-1077,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),7.58,NORMAL (Safe Level),2026-09-24 07:34:58 am
 REC-1078,Ganga River,Varanasi Assi Ghat Station (STN-VRN-04),9.02,NORMAL (Safe Level),2026-09-24 07:34:58 am
 REC-1079,Ganga River,Kanpur Ghat Station (STN-KNP-03),7.88,NORMAL (Safe Level),2026-09-24 07:34:58 am
+REC-1080,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),18.00,CRITICAL (Flood Alert),2026-09-22 10:00:00 [TEST]
+REC-1081,Ganga River,Kanpur Ghat Station (STN-KNP-03),7.90,NORMAL (Safe Level),2026-10-06 10:07:42 am
+REC-1082,Ganga River,Varanasi Assi Ghat Station (STN-VRN-04),9.09,NORMAL (Safe Level),2026-10-06 10:07:42 am
+REC-1083,Ganga River,Haridwar Central Gauge Station (STN-HAR-01),7.46,NORMAL (Safe Level),2026-10-06 10:07:42 am
+REC-1084,Ganga River,Rishikesh Barrage Station (STN-RSH-02),6.26,NORMAL (Safe Level),2026-10-06 10:07:42 am

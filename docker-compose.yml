@@ -1,0 +1,64 @@
+# =============================================================================
+# Smart River Monitoring System — Docker Compose (Day 19)
+# =============================================================================
+# Orchestrates the Smart River application with optional monitoring stack.
+#
+# Services:
+#   smart-river-app  : Spring Boot REST API + Web Dashboard (port 8080)
+#   (optional) prometheus : Metrics scraping
+#   (optional) grafana    : Metrics visualization dashboard
+#
+# Quick Start:
+#   docker-compose up -d
+#   Open: http://localhost:8080/
+#
+# Stop all services:
+#   docker-compose down
+#
+# View logs:
+#   docker-compose logs -f smart-river-app
+# =============================================================================
+
+version: "3.8"
+
+services:
+
+  # ── Main Application ─────────────────────────────────────────────────────────
+  smart-river-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: smart-river-system:0.20.0
+    container_name: smart_river_app
+    ports:
+      - "8080:8080"         # Web Dashboard + REST API + SSE Stream
+    volumes:
+      # Mount host data directory for persistent CSV + H2 database files
+      - ./data:/app/data
+      - ./images:/app/images
+      - ./logs:/app/logs
+    environment:
+      # Spring Boot profile — can override to 'prod' for tighter settings
+      - SPRING_PROFILES_ACTIVE=default
+      # JWT secret override for production (replace with env secret in real deploy)
+      - JWT_SECRET=SmartRiverMonitoringSystem-JWT-SecretKey-Day17-SecurityModule-2026
+      # JVM heap settings
+      - JAVA_OPTS=-Xmx256m -Xms64m -XX:+UseG1GC
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/auth/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - river-network
+    labels:
+      app: "smart-river-monitoring"
+      day: "19"
+      version: "0.20.0"
+
+networks:
+  river-network:
+    driver: bridge
+    name: smart_river_network

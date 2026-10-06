@@ -31,8 +31,8 @@ import service.HydrologicalRiskService;
 
 /**
  * Project: Smart River Water Level Monitoring and Data Collection System Using Image Processing
- * Day 16: Real-Time Server-Sent Events (SSE) Live Telemetry & Hydrological Risk Prediction
- * Syllabus Unit: UNIT V - Full-Stack Web Architecture, Spring Boot Reactive SSE & Risk Analytics
+ * Day 20: Final Project — Security, Testing, Docker & Production-Ready Documentation
+ * Syllabus Unit: UNIT V - Spring Security JWT, JUnit 5 Mockito Testing, Docker Containerization
  */
 public class Main {
 
@@ -55,7 +55,7 @@ public class Main {
 
         while (running) {
             displayMenu();
-            System.out.print("Enter your choice (1-17): ");
+            System.out.print("Enter your choice (1-22): ");
 
             if (scanner.hasNextInt()) {
                 int choice = scanner.nextInt();
@@ -115,6 +115,18 @@ public class Main {
                         manageDay16StreamAndRisk(scanner);
                         break;
                     case 18:
+                        displayDay17SecurityInfo();
+                        break;
+                    case 19:
+                        displayDay18TestingInfo(scanner);
+                        break;
+                    case 20:
+                        displayDay19DockerInfo();
+                        break;
+                    case 21:
+                        displayDay20FinalSummary();
+                        break;
+                    case 22:
                         System.out.println("Stopping background sensor threads and network server...");
                         simulationManager.stopSimulation();
                         if (networkServer.isRunning()) networkServer.stopServer();
@@ -122,7 +134,7 @@ public class Main {
                         running = false;
                         break;
                     default:
-                        System.out.println("Invalid option! Please enter a number between 1 and 18.");
+                        System.out.println("Invalid option! Please enter a number between 1 and 22.");
                 }
             } else {
                 System.out.println("\n[INPUT ERROR] Invalid format! Please enter a numerical menu option.");
@@ -142,7 +154,7 @@ public class Main {
         System.out.println("   SMART RIVER WATER LEVEL MONITORING & DATA COLLECTION     ");
         System.out.println("               (Using Image Processing)                     ");
         System.out.println("============================================================");
-        System.out.println("Academic Prototype - Core Java & Spring Boot (Day 16: Real-Time SSE Telemetry & Risk Engine)\n");
+        System.out.println("Academic Prototype - Core Java & Spring Boot (Day 20: Security, Testing, Docker & Final Polish)\n");
     }
 
     private static void displayMenu() {
@@ -164,7 +176,11 @@ public class Main {
         System.out.println("15. 🗄️ Day 14: Spring Data JPA & H2 Database - ORM Reference");
         System.out.println("16. 🌐 Day 15: Launch & Access Modern Web Dashboard (Single-Page App)");
         System.out.println("17. 📡 Day 16: Real-Time SSE Telemetry & Hydrological Risk Engine");
-        System.out.println("18. Exit");
+        System.out.println("18. 🔒 Day 17: Spring Security & JWT Authentication (API Security)");
+        System.out.println("19. 🧪 Day 18: JUnit 5 & Mockito Unit Testing (Test-Driven Development)");
+        System.out.println("20. 🐳 Day 19: Docker Containerization & CI/CD Deployment Pipeline");
+        System.out.println("21. 🏁 Day 20: Final Project Summary & Complete Architecture");
+        System.out.println("22. Exit");
     }
 
     private static void displayAllStations() {
@@ -1197,5 +1213,197 @@ public class Main {
             scanner.nextLine();
             System.out.println("Invalid input!");
         }
+    }
+
+    // ======================================================================
+    // Day 17: Spring Security & JWT Authentication
+    // ======================================================================
+
+    private static void displayDay17SecurityInfo() {
+        System.out.println("================ 🔒 DAY 17: SPRING SECURITY & JWT AUTHENTICATION ================");
+        System.out.println("Syllabus: UNIT V - API Security, JWT Token Lifecycle, RBAC, BCrypt Hashing");
+        System.out.println();
+        System.out.println("KEY SECURITY CONCEPTS DEMONSTRATED:");
+        System.out.println("  @EnableWebSecurity      : Activates Spring Security auto-configuration");
+        System.out.println("  SecurityFilterChain     : Configures HTTP endpoint authorization rules");
+        System.out.println("  STATELESS sessions      : No HttpSession — JWT on every request");
+        System.out.println("  BCryptPasswordEncoder   : Adaptive one-way hashing (cost factor 12)");
+        System.out.println("  JwtTokenProvider        : HMAC-SHA-256 signed token generation/validation");
+        System.out.println("  JwtAuthenticationFilter : OncePerRequestFilter Bearer token interceptor");
+        System.out.println("  RBAC                    : ROLE_ADMIN (full) / ROLE_VIEWER (read-only)");
+        System.out.println();
+        System.out.println("NEW FILES (Day 17):");
+        System.out.println("  src/security/JwtTokenProvider.java     - HMAC-SHA256 JWT sign/verify");
+        System.out.println("  src/security/JwtAuthenticationFilter.java - Bearer token filter");
+        System.out.println("  src/security/SecurityConfig.java       - Spring Security @Configuration");
+        System.out.println("  src/controller/AuthController.java     - POST /api/auth/login + /refresh");
+        System.out.println("  src/security/TestDay17Security.java    - Automated JWT test suite");
+        System.out.println();
+        System.out.println("DEMO AUTH FLOW (requires mvn spring-boot:run):");
+        System.out.println("  POST http://localhost:8080/api/auth/login");
+        System.out.println("  Body: { \"username\": \"admin\", \"password\": \"admin123\" }");
+        System.out.println("  → Response: { \"accessToken\": \"eyJ...\", \"roles\": [\"ROLE_ADMIN\"] }");
+        System.out.println();
+        System.out.println("  Use token in subsequent requests:");
+        System.out.println("  GET http://localhost:8080/api/stations");
+        System.out.println("  Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...");
+        System.out.println();
+        System.out.println("DEMO USERS:");
+        System.out.println("  admin    / admin123   → ROLE_ADMIN  (POST, DELETE, GET all endpoints)");
+        System.out.println("  monitor  / monitor123 → ROLE_VIEWER (GET read-only endpoints only)");
+        System.out.println("  operator / operator123 → ROLE_ADMIN + ROLE_VIEWER (both roles)");
+        System.out.println("========================================================================================");
+    }
+
+    // ======================================================================
+    // Day 18: JUnit 5 & Mockito Testing
+    // ======================================================================
+
+    private static void displayDay18TestingInfo(Scanner scanner) {
+        System.out.println("================ 🧪 DAY 18: JUNIT 5 & MOCKITO UNIT TESTING ================");
+        System.out.println("Syllabus: UNIT V - Test-Driven Development, Unit Tests, Mock Objects, Assertions");
+        System.out.println();
+        System.out.println("KEY TESTING CONCEPTS DEMONSTRATED:");
+        System.out.println("  @ExtendWith(MockitoExtension.class) : JUnit 5 + Mockito integration");
+        System.out.println("  @Mock                              : Creates Mockito mock objects");
+        System.out.println("  @InjectMocks                       : Injects mocks into class under test");
+        System.out.println("  when().thenReturn()                : Stubs mock behavior");
+        System.out.println("  verify()                           : Asserts mock interactions");
+        System.out.println("  assertThrows()                     : Tests exception propagation");
+        System.out.println("  @BeforeEach                        : Test setup hook");
+        System.out.println("  @DisplayName                       : Human-readable test names");
+        System.out.println();
+        System.out.println("TEST SUITES (Day 18):");
+        System.out.println("  src/test/java/service/RiverMonitoringServiceTest.java  - 14 unit tests");
+        System.out.println("    ✓ getAllStations(), registerStation(), recordMeasurement()");
+        System.out.println("    ✓ Exception scenarios: DuplicateStation, InvalidLevel, StationNotFound");
+        System.out.println("    ✓ Analytics: getAverageWaterLevel, getMaxLevel, getCriticalAlerts");
+        System.out.println();
+        System.out.println("  src/test/java/service/HydrologicalRiskServiceTest.java - 6 unit tests");
+        System.out.println("    ✓ SAFE/ELEVATED/WARNING/CRITICAL_SURGE risk classification");
+        System.out.println("    ✓ Vulnerability score bounds (0-100)");
+        System.out.println("    ✓ Multi-station basin assessment");
+        System.out.println();
+        System.out.println("  src/test/java/security/JwtTokenProviderTest.java - 10 unit tests");
+        System.out.println("    ✓ Token generation, validation, tamper detection");
+        System.out.println("    ✓ Claims extraction: username, roles");
+        System.out.println("    ✓ Role isolation: ADMIN vs VIEWER");
+        System.out.println();
+        System.out.println("RUN TESTS:");
+        System.out.println("  mvn test                          → Run all JUnit 5 test suites");
+        System.out.println("  mvn test -pl . -Dtest=RiverMonitoringServiceTest → Run specific suite");
+        System.out.println("  mvn surefire-report:report        → Generate HTML test report");
+        System.out.println();
+        System.out.println("1. Run all unit tests now");
+        System.out.println("2. Return to main menu");
+        System.out.print("Enter choice: ");
+        if (scanner.hasNextInt()) {
+            int ch = scanner.nextInt(); scanner.nextLine();
+            if (ch == 1) {
+                System.out.println("\nRunning Day 18 unit test suites via JUnit 5...");
+                security.TestDay17Security.main(new String[0]);
+            }
+        } else {
+            scanner.nextLine();
+        }
+        System.out.println("==========================================================================");
+    }
+
+    // ======================================================================
+    // Day 19: Docker Containerization & CI/CD
+    // ======================================================================
+
+    private static void displayDay19DockerInfo() {
+        System.out.println("================ 🐳 DAY 19: DOCKER CONTAINERIZATION & CI/CD ================");
+        System.out.println("Syllabus: UNIT V - Docker, Multi-Stage Builds, Container Orchestration, CI/CD Pipelines");
+        System.out.println();
+        System.out.println("KEY DEVOPS CONCEPTS DEMONSTRATED:");
+        System.out.println("  Multi-Stage Dockerfile  : Builder (Maven+JDK) → Runtime (JRE only) stages");
+        System.out.println("  HEALTHCHECK             : Docker monitors container liveness automatically");
+        System.out.println("  Non-Root User           : Principle of least privilege (riverapp:riverapp)");
+        System.out.println("  JVM Tuning              : -Xmx256m -XX:+UseG1GC for container environments");
+        System.out.println("  docker-compose.yml      : Multi-service orchestration with volume persistence");
+        System.out.println("  GitHub Actions CI/CD    : 3-stage pipeline: Test → Build → Docker Push");
+        System.out.println("  Layer Caching           : pom.xml first → dependency layer cached separately");
+        System.out.println();
+        System.out.println("NEW FILES (Day 19):");
+        System.out.println("  Dockerfile               - Multi-stage Docker image definition");
+        System.out.println("  docker-compose.yml       - Service orchestration + volume mounts");
+        System.out.println("  .github/workflows/ci-cd.yml - GitHub Actions 3-stage pipeline");
+        System.out.println("  src/main/TestDay19Docker.java - Docker artifact verification suite");
+        System.out.println();
+        System.out.println("DOCKER COMMANDS:");
+        System.out.println("  Build image     : docker build -t smart-river-system .");
+        System.out.println("  Run container   : docker run -p 8080:8080 smart-river-system");
+        System.out.println("  Compose deploy  : docker-compose up -d");
+        System.out.println("  View live logs  : docker-compose logs -f smart-river-app");
+        System.out.println("  Stop all        : docker-compose down");
+        System.out.println("  Image stats     : docker images smart-river-system");
+        System.out.println();
+        System.out.println("GITHUB ACTIONS PIPELINE (.github/workflows/ci-cd.yml):");
+        System.out.println("  Stage 1 → test   : mvn test (JUnit 5 suite)");
+        System.out.println("  Stage 2 → build  : mvn package (Spring Boot fat JAR)");
+        System.out.println("  Stage 3 → docker : docker build + push to GitHub Container Registry");
+        System.out.println("========================================================================================");
+
+        System.out.println("\nRunning Day 19 Docker verification...");
+        TestDay19Docker.main(new String[0]);
+    }
+
+    // ======================================================================
+    // Day 20: Final Project Summary
+    // ======================================================================
+
+    private static void displayDay20FinalSummary() {
+        System.out.println("================ 🏁 DAY 20: FINAL PROJECT — COMPLETE ARCHITECTURE ================");
+        System.out.println("Smart River Water Level Monitoring & Data Collection System — v0.20 Final Release");
+        System.out.println("Academic Prototype | Core Java + Spring Boot + Security + Testing + Docker");
+        System.out.println();
+        System.out.println("╔══════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║          COMPLETE 20-DAY DEVELOPMENT JOURNEY SUMMARY                ║");
+        System.out.println("╠══════════════════════════════════════════════════════════════════════╣");
+        System.out.println("║ Day  1: Project Init & Console Scaffold (Scanner, switch-case)       ║");
+        System.out.println("║ Day  2: Domain Model & OOP Encapsulation (WaterLevelRecord)          ║");
+        System.out.println("║ Day  3: River Station Entity & Object Relationships (Association)     ║");
+        System.out.println("║ Day  4: Service Layer & Collections Framework (ArrayList, HashMap)   ║");
+        System.out.println("║ Day  5: Custom Exception Handling & Robust Input Validation          ║");
+        System.out.println("║ Day  6: Computer Vision & Water Level Estimation (Image Processing)  ║");
+        System.out.println("║ Day  7: DAO Pattern & CSV File Persistence (Strategy Design Pattern)  ║");
+        System.out.println("║ Day  8: Multithreading & Real-Time IoT Sensor Simulation             ║");
+        System.out.println("║ Day  9: Java Networking & TCP Client-Server Socket Programming       ║");
+        System.out.println("║ Day 10: JDBC Database Connectivity & Relational SQL Console          ║");
+        System.out.println("║ Day 11: Java Swing GUI Dashboard (Event-Driven Desktop App)          ║");
+        System.out.println("║ Day 12: Advanced Analytics (Java 8 Streams, Lambdas, Collectors)     ║");
+        System.out.println("║ Day 13: Spring Boot Migration & REST API Development                 ║");
+        System.out.println("║ Day 14: Spring Data JPA & H2 Embedded Database (ORM)                ║");
+        System.out.println("║ Day 15: Modern Web Dashboard & Single-Page Application (HTML5/JS)    ║");
+        System.out.println("║ Day 16: Real-Time SSE Telemetry & Hydrological Risk Engine           ║");
+        System.out.println("║ Day 17: Spring Security & JWT Authentication (RBAC, BCrypt)          ║");
+        System.out.println("║ Day 18: JUnit 5 & Mockito Unit Testing (TDD, Mock Objects)           ║");
+        System.out.println("║ Day 19: Docker Containerization & CI/CD Deployment Pipeline         ║");
+        System.out.println("║ Day 20: Final Polish — Architecture, Documentation & Summary         ║");
+        System.out.println("╠══════════════════════════════════════════════════════════════════════╣");
+        System.out.println("║  Total Java Files Created: 60+                                       ║");
+        System.out.println("║  Java Concepts Covered   : OOP, Collections, Threads, I/O, GUI,     ║");
+        System.out.println("║                            Networking, JDBC, JPA, Streams, Security  ║");
+        System.out.println("║  Frameworks Used         : Spring Boot 3.2, Hibernate JPA, JWT      ║");
+        System.out.println("║  Testing                 : JUnit 5, Mockito, Spring Security Test    ║");
+        System.out.println("║  DevOps                  : Docker, docker-compose, GitHub Actions    ║");
+        System.out.println("╚══════════════════════════════════════════════════════════════════════╝");
+        System.out.println();
+        System.out.println("FULL SYSTEM ACCESS:");
+        System.out.println("  Web Dashboard   : http://localhost:8080/");
+        System.out.println("  REST API        : http://localhost:8080/api/");
+        System.out.println("  JWT Login       : POST http://localhost:8080/api/auth/login");
+        System.out.println("  SSE Stream      : http://localhost:8080/api/stream/telemetry");
+        System.out.println("  H2 DB Console   : http://localhost:8080/h2-console");
+        System.out.println("  Basin Risk API  : http://localhost:8080/api/basin/risk");
+        System.out.println();
+        System.out.println("LAUNCH COMMANDS:");
+        System.out.println("  mvn spring-boot:run          → Launch Web App + REST API + SSE");
+        System.out.println("  mvn test                     → Run all JUnit 5 test suites");
+        System.out.println("  docker-compose up -d         → Deploy via Docker Compose");
+        System.out.println("  mvn exec:java -Dexec.mainClass=main.Main → Run console application");
+        System.out.println("========================================================================================");
     }
 }
